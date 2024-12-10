@@ -30,6 +30,16 @@ class AYG_Admin {
 		if ( AYG_VERSION !== get_option( 'ayg_version' ) ) {	
 			$defaults = ayg_get_default_settings();				
 
+			// Update the player settings
+			$player_settings = get_option( 'ayg_player_settings' );
+
+			if ( ! array_key_exists( 'player_type', $player_settings ) ) {
+				$player_settings['player_type']  = $defaults['ayg_player_settings']['player_type'];
+				$player_settings['player_color'] = $defaults['ayg_player_settings']['player_color'];
+
+				update_option( 'ayg_player_settings', $player_settings );
+			}
+
 			// Insert the livestream settings			
 			if ( false == get_option( 'ayg_livestream_settings' ) ) {
 				add_option( 'ayg_livestream_settings', $defaults['ayg_livestream_settings'] );

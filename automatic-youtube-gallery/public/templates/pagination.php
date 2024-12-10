@@ -53,7 +53,7 @@ if ( $params['total_pages'] <= 1 ) {
 $params = apply_filters( 'ayg_pagination_args', $params, $attributes );
 ?>
 
-<div class="ayg-pagination" data-params='<?php echo wp_json_encode( $params ); ?>'>
+<ayg-pagination class="ayg-pagination" data-params='<?php echo wp_json_encode( $params ); ?>'>
     <?php if ( 'pager' == $attributes['pagination_type'] ) : // pager ?>
         <div class="ayg-pagination-prev">
             <button type="button" class="ayg-btn ayg-pagination-prev-btn" data-type="previous" style="display: none;"><?php echo esc_html( $attributes['previous_button_label'] ); ?></button>
@@ -73,4 +73,4 @@ $params = apply_filters( 'ayg_pagination_args', $params, $attributes );
             <button type="button" class="ayg-btn ayg-pagination-next-btn" data-type="more"><?php echo esc_html( $attributes['more_button_label'] ); ?></button>
         </div>
     <?php endif; ?>
-</div>
+</ayg-pagination>

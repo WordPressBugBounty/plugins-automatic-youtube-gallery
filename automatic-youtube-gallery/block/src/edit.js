@@ -47,6 +47,13 @@ export default function Edit( { attributes, setAttributes, className, clientId }
 	const [ isLoading, setIsLoading ] = useState( false );
 	const [ proxyAttributes, setProxyAttributes ] = useState( attributes );
 
+	const MyLoadingComponent = () => (
+		<div className="automatic-youtube-gallery-block-spinner">
+			<Spinner />
+			{ ayg_block.i18n.is_loading }
+		</div>
+	);
+
 	const MyServerSideRender = () => (
 		<ServerSideRender
 			block="automatic-youtube-gallery/block"
@@ -212,10 +219,6 @@ export default function Edit( { attributes, setAttributes, className, clientId }
 					value = false;
 				}
 				break;
-			case 'privacy_enhanced_mode':
-			case 'origin':
-				value = false;
-				break;
 		}
 
 		return applyFilters( 'ayg_block_toggle_controls', value, control, attributes );
@@ -279,14 +282,8 @@ export default function Edit( { attributes, setAttributes, className, clientId }
 
 			<div { ...blockProps }>
 				<Disabled>
+					{ isLoading && <MyLoadingComponent /> }
 					<MemoizedServerSideRender />
-
-					{ isLoading && (
-						<div className="automatic-youtube-gallery-block-spinner">
-							<Spinner />
-							<span>{ ayg_block.i18n.is_loading }</span>
-						</div>
-					) }				
 				</Disabled>
 			</div>
 		</>

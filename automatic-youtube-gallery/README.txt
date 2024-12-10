@@ -4,9 +4,9 @@ Contributors: plugins360, wpvideogallery, freemius
 Donate link: https://plugins360.com
 Tags: youtube gallery, youtube playlist, youtube channel, youtube embed, youtube live
 Requires at least: 6.0
-Tested up to: 6.6
+Tested up to: 6.7
 Requires PHP: 5.6.20
-Stable tag: 2.4.3
+Stable tag: 2.5.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -115,6 +115,15 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 10. Widget
 
 == Changelog ==
+
+= 2.5.2 =
+
+* New: Introduced a "Custom Video Player" as an alternative to the default native YouTube embed. Users can configure this via the "Player Type" option.
+* New: Added "Lazy Loading" for images and videos, enhancing page load times and overall performance.
+* New: Introduced a new "Page Scroll Top Offset" option, enabling users to define a custom top offset (in pixels) when the page scrolls to the video player after clicking on a thumbnail.
+* Tweak: Completely rewrote the plugin's JavaScript files using the latest "Custom Elements" technology, ensuring better integration and improved performance.
+* Tweak: Updated the "Freemius SDK" to version 2.9.0.
+* Fix: Resolved various minor bugs to enhance stability and functionality.
 
 = 2.4.3 =
 
@@ -253,6 +262,6 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 
 == Upgrade Notice ==
 
-= 2.4.3 =
+= 2.5.2 =
 
 Introduces several new features, bug fixes & enhancements. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)

@@ -265,69 +265,82 @@
 				.slideToggle();
 		});
 
-		// Editor: Show/Hide fields based on the selected source 'type'
-		$( document ).on( 'change', '.ayg-editor-field-type', function( e ) {			
-			var type  = $( this ).val();
-			var $elem = $( this ).closest( '.ayg-editor' );
+		// Editor: Toggle fields based on the source type
+		$( document ).on( 'change', '.ayg-editor-field-type', function() {
+			var $container = $( this ).closest( '.ayg-editor' );			
+			var value = $( this ).val();			
 
-			$elem.removeClass(function( index, classes ) {
+			$container.removeClass(function( index, classes ) {
 				var matches = classes.match( /\ayg-editor-field-type-\S+/ig );
-				return ( matches ) ? matches.join(' ') : '';
+				return ( matches ) ? matches.join( ' ' ) : '';
 			});
 
-			$elem.addClass( 'ayg-editor-field-type-' + type );
+			$container.addClass( 'ayg-editor-field-type-' + value );
 		});
 
-		// Editor: Show/Hide fields based on the selected theme
-		$( document ).on( 'change', '.ayg-editor-field-theme', function( e ) {			
-			var theme = $( this ).val();
-			var $elem = $( this ).closest( '.ayg-editor' );
+		// Editor: Toggle fields based on the theme
+		$( document ).on( 'change', '.ayg-editor-field-theme', function() {
+			var $container = $( this ).closest( '.ayg-editor' );			
+			var value = $( this ).val();			
 
-			$elem.removeClass(function( index, classes ) {
+			$container.removeClass(function( index, classes ) {
 				var matches = classes.match( /\ayg-editor-field-theme-\S+/ig );
-				return ( matches ) ? matches.join(' ') : '';
+				return ( matches ) ? matches.join( ' ' ) : '';
 			});
 
-			$elem.addClass( 'ayg-editor-field-theme-' + theme );
+			$container.addClass( 'ayg-editor-field-theme-' + value );
 		});	
 
-		// Editor: Show/Hide fields based on the selected pagination type
-		$( document ).on( 'change', '.ayg-editor-field-pagination_type', function( e ) {			
-			var pagination_type = $( this ).val();
-			var $elem = $( this ).closest( '.ayg-editor' );
+		// Editor: Toggle fields based on the pagination type
+		$( document ).on( 'change', '.ayg-editor-field-pagination_type', function() {			
+			var $container = $( this ).closest( '.ayg-editor' );
+			var value = $( this ).val();
 
-			$elem.removeClass(function( index, classes ) {
+			$container.removeClass(function( index, classes ) {
 				var matches = classes.match( /\ayg-editor-field-pagination_type-\S+/ig );
-				return ( matches ) ? matches.join(' ') : '';
+				return ( matches ) ? matches.join( ' ' ) : '';
 			});
 
-			$elem.addClass( 'ayg-editor-field-pagination_type-' + pagination_type );
+			$container.addClass( 'ayg-editor-field-pagination_type-' + value );
 		});		
 
-		// Settings: Show/Hide fields based on the selected theme
-		$( 'tr.theme', '#ayg-settings' ).find( 'select' ).on( 'change', function() {			
-			var theme = $( this ).val();
-			var $elem = $( '#ayg-settings' );
+		// Settings: Toggle fields based on the theme
+		$( 'tr.theme select', '#ayg-settings' ).on( 'change', function() {
+			var $container = $( '#ayg-settings' );		
+			var value = $( this ).val();			
 
-			$elem.removeClass(function( index, classes ) {
-				var matches = classes.match( /\ayg-settings-theme-\S+/ig );
-				return ( matches ) ? matches.join(' ') : '';
+			$container.removeClass(function( index, classes ) {
+				var matches = classes.match( /theme-\S+/ig );
+				return ( matches ) ? matches.join( ' ' ) : '';
 			});
 
-			$elem.addClass( 'ayg-settings-theme-' + theme );
+			$container.addClass( 'theme-' + value );
 		});
 
-		// Settings: Show/Hide fields based on the selected pagination type
-		$( 'tr.pagination_type', '#ayg-settings' ).find( 'select' ).on( 'change', function() {			
-			var pagination_type = $( this ).val();
-			var $elem = $( '#ayg-settings' );
+		// Settings: Toggle fields based on the pagination type
+		$( 'tr.pagination_type select', '#ayg-settings' ).on( 'change', function() {
+			var $container = $( '#ayg-settings' );			
+			var value = $( this ).val();			
 
-			$elem.removeClass(function( index, classes ) {
-				var matches = classes.match( /\ayg-settings-pagination_type-\S+/ig );
-				return ( matches ) ? matches.join(' ') : '';
+			$container.removeClass(function( index, classes ) {
+				var matches = classes.match( /pagination_type-\S+/ig );
+				return ( matches ) ? matches.join( ' ' ) : '';
 			});
 
-			$elem.addClass( 'ayg-settings-pagination_type-' + pagination_type );
+			$container.addClass( 'pagination_type-' + value );
+		});
+
+		// Settings: Toggle fields based on the player type
+		$( 'tr.player_type input[type="radio"]', '#ayg-settings' ).on( 'change', function() {	
+			var $container = $( '#ayg-settings' );		
+			var value = $container.find( 'tr.player_type input[type="radio"]:checked' ).val();			
+
+			$container.removeClass(function( index, classes ) {
+				var matches = classes.match( /player_type-\S+/ig );
+				return ( matches ) ? matches.join( ' ' ) : '';
+			});
+
+			$container.addClass( 'player_type-' + value );
 		});
 
 		// Settings: Browse button

@@ -9,43 +9,46 @@
  * @package Automatic_YouTube_Gallery
  */
 
-$single_video_page_url = ayg_get_single_video_url( $video, $attributes );
+$single_url = ayg_get_single_video_url( $video, $attributes );
 ?>
 
-<div class="ayg-thumbnail" data-id="<?php echo esc_attr( $video->id ); ?>" data-title="<?php echo esc_attr( $video->title ); ?>" data-url="<?php echo esc_attr( $single_video_page_url ); ?>">
-    <div class="ayg-thumbnail-image-wrapper">
+<div class="ayg-thumbnail" data-id="<?php echo esc_attr( $video->id ); ?>" data-title="<?php echo esc_attr( $video->title ); ?>" data-url="<?php echo esc_attr( $single_url ); ?>">
+    <div class="ayg-thumbnail-media">
         <?php
         // Image
-        $image_src = '';
+        $image_url = '';
     
         if ( isset( $video->thumbnails->default ) ) {
-            $image_src = $video->thumbnails->default->url;
+            $image_url = $video->thumbnails->default->url;
         }    
         
         if ( 75 == (int) $attributes['thumb_ratio'] ) { // 4:3 ( default - 120x90, high - 480x360, standard - 640x480 )
             if ( isset( $video->thumbnails->high ) ) {
-                $image_src = $video->thumbnails->high->url;
+                $image_url = $video->thumbnails->high->url;
             }
 
             if ( isset( $video->thumbnails->standard ) ) {
-                $image_src = $video->thumbnails->standard->url;
+                $image_url = $video->thumbnails->standard->url;
             }
         }    
         
         if ( 56.25 == (float) $attributes['thumb_ratio'] ) { // 16:9 ( medium - 320x180, maxres - 1280x720 )
             if ( isset( $video->thumbnails->medium ) ) {
-                $image_src = $video->thumbnails->medium->url;
+                $image_url = $video->thumbnails->medium->url;
             }
 
             if ( isset( $video->thumbnails->maxres ) ) {
-                $image_src = $video->thumbnails->maxres->url;
+                $image_url = $video->thumbnails->maxres->url;
             }
         }
+
+        $image_url = apply_filters( 'ayg_thumbnail_image_url', $image_url, $video, $attributes );
         
         echo sprintf(
-            '<img src="%s" class="ayg-thumbnail-image" alt="%s" />',
-            esc_url( $image_src ),
-            esc_attr( $video->title )
+            '<img src="%s" class="ayg-thumbnail-image" alt="%s" %s/>',
+            esc_url( $image_url ),
+            esc_attr( $video->title ),
+            ( ! empty( $attributes['lazyload'] ) ? 'loading="lazy"' : '' )
         );
 
         // Play Icon
@@ -54,8 +57,11 @@ $single_video_page_url = ayg_get_single_video_url( $video, $attributes );
             esc_attr__( 'Play', 'automatic-youtube-gallery' )
         );
 
-        // Visualizer
-        echo '<div class="ayg-visualizer ayg-thumbnail-visualizer" style="display: none;"><span></span><span></span><span></span></div>';
+        // Now Playing
+        echo sprintf( 
+            '<div class="ayg-thumbnail-now-playing" style="display: none;">%s</div>', 
+            esc_html__( 'Now Playing', 'automatic-youtube-gallery' ) 
+        );
         ?>        
     </div>
 
