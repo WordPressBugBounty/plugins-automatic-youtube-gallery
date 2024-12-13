@@ -11,7 +11,6 @@
 
 $single_url = ayg_get_single_video_url( $video, $attributes );
 ?>
-
 <div class="ayg-thumbnail" data-id="<?php echo esc_attr( $video->id ); ?>" data-title="<?php echo esc_attr( $video->title ); ?>" data-url="<?php echo esc_attr( $single_url ); ?>">
     <div class="ayg-thumbnail-media">
         <?php
@@ -64,16 +63,13 @@ $single_url = ayg_get_single_video_url( $video, $attributes );
         );
         ?>        
     </div>
-
     <div class="ayg-thumbnail-caption">
         <?php if ( ! empty( $attributes['thumb_title'] ) ) : ?> 
             <div class="ayg-thumbnail-title"><?php echo esc_html( ayg_trim_words( $video->title, (int) $attributes['thumb_title_length'] ) ); ?></div>
         <?php endif; ?> 
-
         <?php if ( ! empty( $attributes['thumb_excerpt'] ) && ! empty( $video->description ) ) : ?>
             <div class="ayg-thumbnail-excerpt"><?php echo wp_kses_post( ayg_trim_words( $video->description, (int) $attributes['thumb_excerpt_length'] ) ); ?></div>
         <?php endif; ?>
-
         <?php if ( ! empty( $attributes['player_description'] ) && ! empty( $video->description ) ) : ?>  
             <div class="ayg-thumbnail-description" style="display: none;"><?php echo wp_kses_post( ayg_get_player_description( $video ) ); ?></div>
         <?php endif; ?>

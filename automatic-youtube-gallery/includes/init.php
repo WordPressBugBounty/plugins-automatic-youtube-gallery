@@ -134,6 +134,8 @@ class AYG_Init {
 		$this->loader->add_action( 'admin_init', $admin, 'insert_missing_options', 1 );	
 		$this->loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_scripts' );
+		$this->loader->add_action( 'elementor/editor/after_enqueue_styles', $admin, 'enqueue_styles' );
+		$this->loader->add_action( 'elementor/editor/after_enqueue_scripts', $admin, 'enqueue_scripts' );
 		$this->loader->add_action( 'admin_menu', $admin, 'admin_menu' );
 		$this->loader->add_action( 'admin_notices', $admin, 'admin_notices' );
 		$this->loader->add_action( 'wp_ajax_ayg_save_api_key', $admin, 'ajax_callback_save_api_key' );
@@ -162,6 +164,8 @@ class AYG_Init {
 		$this->loader->add_action( 'wp_enqueue_scripts', $public, 'register_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $public, 'register_scripts' );
 		$this->loader->add_action( 'enqueue_block_editor_assets', $public, 'enqueue_block_editor_assets' );
+		$this->loader->add_action( 'elementor/editor/after_enqueue_scripts', $public, 'enqueue_block_editor_assets' );
+		$this->loader->add_action( 'elementor/preview/enqueue_scripts', $public, 'enqueue_block_editor_assets' );		
 		$this->loader->add_action( 'wp_ajax_ayg_load_more_videos', $public, 'ajax_callback_load_more_videos' );
 		$this->loader->add_action( 'wp_ajax_nopriv_ayg_load_more_videos', $public, 'ajax_callback_load_more_videos' );
 		$this->loader->add_action( 'wp_ajax_ayg_set_cookie', $public, 'set_gdpr_cookie' );

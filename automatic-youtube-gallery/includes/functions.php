@@ -150,8 +150,7 @@ function ayg_build_gallery( $args ) {
 		// Enqueue dependencies
 		wp_enqueue_style( AYG_SLUG . '-public' );
 
-		wp_enqueue_script( AYG_SLUG . '-public' );
-		
+		wp_enqueue_script( AYG_SLUG . '-public' );		
 		if ( $attributes['theme'] == $theme && 'classic' == $attributes['theme'] ) {
 			wp_enqueue_script( AYG_SLUG . '-theme-classic' );
 		}

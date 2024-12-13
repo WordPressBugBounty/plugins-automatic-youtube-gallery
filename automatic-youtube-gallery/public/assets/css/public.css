@@ -272,6 +272,11 @@ ayg-player .plyr--initialized iframe {
     cursor: pointer;
 }
 
+.ayg-thumbnail p, 
+.ayg-thumbnail br {
+    display: none;
+}
+
 .ayg-thumbnail-media {
     position: relative;
 }

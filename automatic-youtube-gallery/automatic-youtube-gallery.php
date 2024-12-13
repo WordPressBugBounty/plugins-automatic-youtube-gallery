@@ -11,7 +11,7 @@
  * Plugin Name:       Automatic YouTube Gallery
  * Plugin URI:        https://plugins360.com/automatic-youtube-gallery/
  * Description:       Create responsive, modern & dynamic video galleries by simply adding a YouTube USERNAME, CHANNEL, PLAYLIST, SEARCH KEYWORDS, or a custom list of YouTube URLs.
- * Version:           2.5.2
+ * Version:           2.5.5
  * Author:            Team Plugins360
  * Author URI:        https://plugins360.com
  * License:           GPL-2.0+
@@ -30,7 +30,7 @@ if ( function_exists( 'ayg_fs' ) ) {
 }
 // Current version of the plugin
 if ( !defined( 'AYG_VERSION' ) ) {
-    define( 'AYG_VERSION', '2.5.2' );
+    define( 'AYG_VERSION', '2.5.5' );
 }
 // Unique identifier of the plugin
 if ( !defined( 'AYG_SLUG' ) ) {
@@ -58,7 +58,7 @@ if ( !function_exists( 'ayg_fs' ) ) {
                 define( 'WP_FS__PRODUCT_2922_MULTISITE', true );
             }
             // Include Freemius SDK
-            require_once dirname( __FILE__ ) . '/freemius/start.php';
+            require_once dirname( __FILE__ ) . '/vendor/freemius/start.php';
             $ayg_fs = fs_dynamic_init( array(
                 'id'             => '2922',
                 'slug'           => 'automatic-youtube-gallery',
@@ -75,7 +75,6 @@ if ( !function_exists( 'ayg_fs' ) ) {
                 'menu'           => array(
                     'slug'       => 'automatic-youtube-gallery',
                     'first-path' => 'admin.php?page=automatic-youtube-gallery',
-                    'support'    => false,
                 ),
                 'is_live'        => true,
             ) );

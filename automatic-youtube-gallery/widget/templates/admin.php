@@ -10,10 +10,10 @@
  */
 ?>
 
-<p>
+<div class="ayg-widget-field ayg-widget-field-title">
 	<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>"><?php esc_html_e( 'Title', 'automatic-youtube-gallery' ); ?></label> 
 	<input type="text" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" class="widefat" value="<?php echo esc_attr( $instance['title'] ); ?>" />
-</p>
+</div>
 
 <div class="ayg-editor ayg-editor-field-type-<?php echo esc_attr( $instance['type'] ); ?> ayg-editor-field-theme-<?php echo esc_attr( $instance['theme'] ); ?> ayg-editor-field-pagination_type-<?php echo esc_attr( $instance['pagination_type'] ); ?>">
 	<?php foreach ( $fields as $key => $value ) : ?>	

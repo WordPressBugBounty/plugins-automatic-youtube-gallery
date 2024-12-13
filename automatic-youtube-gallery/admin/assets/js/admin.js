@@ -6,7 +6,7 @@
  	 *
  	 * @since 1.0.0
  	 */
-	 function ayg_render_media_uploader( $elem ) { 
+	function ayg_render_media_uploader( $elem ) { 
     	var file_frame, attachment;
  
      	// If an instance of file_frame already exists, then we can open it rather than creating a new instance
@@ -40,16 +40,6 @@
     	// Now display the actual file_frame
     	file_frame.open(); 
 	};
-
-	/**
- 	 * Close the popup.
- 	 *
- 	 * @since 1.0.0
- 	 */
-	function ayg_modal_hide() {		
-		$( '.ayg-modal' ).hide();
-		$( 'html' ).removeClass( 'ayg-no-scroll' );
-	}
 
 	/**
  	 * Get Youtube playlist ID from Youtube URL.
@@ -136,6 +126,14 @@
 	$(function() {
 		// Common: Initialize the color picker
 		$( '.ayg-color-picker' ).wpColorPicker();
+
+		// Common: Init the popup.
+		if ( $.fn.magnificPopup ) {
+			$( '.ayg-modal-button' ).magnificPopup({
+				type: 'inline',
+				mainClass: 'mfp-fade'
+			});
+		}
 
 		// Dashboard: Save API Key
 		$( '#ayg-button-save-api-key' ).on( 'click', function( e ) {																			  
@@ -230,23 +228,7 @@
 
 			// Shortcode output		
 			$( '#aiovg-shortcode').val( '[automatic_youtube_gallery' + attrs + ']' ); 
-
-			// Initialize the popup
-			$( 'html' ).addClass( 'ayg-no-scroll' );
-			$( '#ayg-shortcode-modal' ).show();
 		});
-
-		// Dashboard: Close the shortcode builder popup
-		$( '.ayg-modal-close' ).on( 'click', function( e ) {		
-			e.preventDefault();
-			ayg_modal_hide();			
-		});	
-		
-		$( '.ayg-modal-content' ).on( 'click', function( e ) {		
-			if ( $( e.target ).hasClass( 'ayg-modal-content' ) ) {
-				ayg_modal_hide();
-			};			
-		});	
 
 		// Editor: Toggle between field sections
 		$( document ).on( 'click', '.ayg-editor-section-header', function( e ) {

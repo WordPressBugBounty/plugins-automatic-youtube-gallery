@@ -14,9 +14,7 @@ $player_ratio = ! empty( $attributes['player_ratio'] ) ? (float) $attributes['pl
 
 $featured = $videos[0]; // Featured Video
 ?>
-
 <div id="ayg-<?php echo esc_attr( $attributes['uid'] ); ?>" class="ayg ayg-theme ayg-theme-livestream">
-    <!-- Player -->
     <div class="ayg-player">
         <div class="ayg-player-container" style="max-width: <?php echo $player_width; ?>;">
             <?php

@@ -69,7 +69,7 @@ foreach ( $fields['gallery']['fields'] as $field ) {
                                     <?php endif; ?>
                                     
                                     <!-- Hint -->
-                                    <?php if ( isset( $field['description'] ) ) : ?>                            
+                                    <?php if ( isset( $field['description'] ) && ! empty( $field['description'] ) ) : ?>                            
                                         <p class="description"><?php echo wp_kses_post( $field['description'] ); ?></p>                        
                                     <?php endif; ?>                                                            
                                 </div>    
@@ -85,7 +85,9 @@ foreach ( $fields['gallery']['fields'] as $field ) {
                 ?>
 
                 <p>            
-                    <input type="button" id="ayg-generate-shortcode" class="button-primary" value="<?php esc_attr_e( 'Generate Shortcode', 'automatic-youtube-gallery' ); ?>" />
+                    <a href="#ayg-shortcode-modal" id="ayg-generate-shortcode" class="ayg-modal-button button button-primary button-hero">
+                        <?php esc_attr_e( 'Generate Shortcode', 'automatic-youtube-gallery' ); ?>
+                    </a>
                 </p>
             </div>
         </div>
@@ -103,14 +105,9 @@ foreach ( $fields['gallery']['fields'] as $field ) {
 </div>
 
 <!-- Shortcode Modal -->
-<div id="ayg-shortcode-modal" class="ayg-modal" style="display: none;">
-    <div class="ayg-modal-bg"></div>          
-    <div class="ayg-modal-content">                 
-        <div class="ayg-modal-body">
-            <span class="ayg-modal-close">&times;</span>
-
-            <p class="ayg-modal-title"><?php esc_html_e( 'Congrats! copy the shortcode below and paste it in your POST/PAGE where you need the gallery,', 'automatic-youtube-gallery' ); ?></p>
-            <textarea id="aiovg-shortcode" class="widefat code" autofocus="autofocus" onfocus="this.select()"></textarea>
-        </div>
+<div id="ayg-shortcode-modal" class="ayg-modal mfp-hide">
+    <div class="ayg-modal-body">
+        <p><?php esc_html_e( 'Congrats! copy the shortcode below and paste it in your POST/PAGE where you need the gallery,', 'automatic-youtube-gallery' ); ?></p>
+        <textarea id="aiovg-shortcode" class="widefat code" autofocus="autofocus" onfocus="this.select()"></textarea>
     </div>
 </div>

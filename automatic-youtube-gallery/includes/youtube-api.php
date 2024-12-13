@@ -194,7 +194,7 @@ class AYG_YouTube_API {
 
 		switch ( $type ) {
 			case 'playlist':
-				if ( preg_match( '/list=(.*)&?\/?/', $url, $matches ) ) {
+				if ( preg_match( '/[?&]list=([^&]+)/', $url, $matches ) ) {
 					$id = $matches[1];
 				}
 				break;

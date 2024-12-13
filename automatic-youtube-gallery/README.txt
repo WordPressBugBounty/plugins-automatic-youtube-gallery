@@ -6,7 +6,7 @@ Tags: youtube gallery, youtube playlist, youtube channel, youtube embed, youtube
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 5.6.20
-Stable tag: 2.5.2
+Stable tag: 2.5.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,7 +40,7 @@ https://www.youtube.com/watch?v=a90OGk42fJ4&rel=0
 * GDPR consent before the playback.
 * Gutenberg Block support.
 * Shortcode Builder for the old classic editor and other third-party page builders.
-* Sidebar Widget
+* Sidebar Widget (Compatible with Elementor Page Builder).
 * Built-in caching for quick page loads.
 * Most importantly, a Clear & Beautiful Admin Interface.
 * [+] Hooks for Developers.
@@ -95,7 +95,12 @@ If nothing works, please describe your issue and submit a ticket on our plugin s
 
 = 3. Does the plugin support third-party page builders like "Elementor", "WPBakery", "Divi", etc.? =
 
-Yes. Simply, generate your shortcode using the plugin's "Shortcode Builder" and add it to your favourite page builder.
+Yes, the plugin is fully compatible with popular page builders like Elementor, WPBakery, Divi, and more.
+
+* For **Elementor**, the plugin provides a dedicated WordPress widget. You can find it under the "WordPress" tab in the Elementor editor. Simply drag and drop the widget into your design to embed your video gallery seamlessly.
+* Alternatively, for **Elementor** and other page builders, you can use the plugin's **Shortcode Builder** to generate a shortcode. Once created, you can add the shortcode to any section or module of your favorite page builder.
+
+This flexibility ensures you can integrate your video gallery effortlessly, regardless of your preferred page builder.
 
 = 4. Is the plugin compatible with WordPress Multisite? =
 
@@ -115,6 +120,11 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 10. Widget
 
 == Changelog ==
+
+= 2.5.5 =
+
+* Tweak: Updated the "Freemius SDK" to version 2.10.1.
+* Fix: Compatibility issues with the Elementor page builder.
 
 = 2.5.2 =
 
@@ -262,6 +272,6 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 
 == Upgrade Notice ==
 
-= 2.5.2 =
+= 2.5.5 =
 
-Introduces several new features, bug fixes & enhancements. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)
+Resolves compatibility issues with the Elementor page builder. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)

@@ -72,6 +72,14 @@ class AYG_Admin {
 		wp_enqueue_style( 'wp-color-picker' );
 
 		wp_enqueue_style( 
+			AYG_SLUG . '-magnific-popup', 
+			AYG_URL . 'vendor/magnific-popup/magnific-popup.css', 
+			array(), 
+			'1.2.0', 
+			'all' 
+		);
+
+		wp_enqueue_style( 
 			AYG_SLUG . '-admin', 
 			AYG_URL . 'admin/assets/css/admin.min.css', 
 			array(), 
@@ -88,6 +96,14 @@ class AYG_Admin {
 	public function enqueue_scripts() {
 		wp_enqueue_media();
 		wp_enqueue_script( 'wp-color-picker' );
+
+		wp_enqueue_script( 
+			AYG_SLUG . '-magnific-popup', 
+			AYG_URL . 'vendor/magnific-popup/magnific-popup.min.js', 
+			array( 'jquery' ), 
+			'1.2.0', 
+			array( 'strategy' => 'defer' )  
+		);
 
 		wp_enqueue_script( 
 			AYG_SLUG . '-admin', 
