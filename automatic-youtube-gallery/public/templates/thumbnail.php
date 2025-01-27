@@ -44,7 +44,7 @@ $single_url = ayg_get_single_video_url( $video, $attributes );
         $image_url = apply_filters( 'ayg_thumbnail_image_url', $image_url, $video, $attributes );
         
         echo sprintf(
-            '<img src="%s" class="ayg-thumbnail-image" alt="%s" %s/>',
+            '<img src="%s" class="ayg-thumbnail-image" width="320" height="180" alt="%s" %s/>',
             esc_url( $image_url ),
             esc_attr( $video->title ),
             ( ! empty( $attributes['lazyload'] ) ? 'loading="lazy"' : '' )
