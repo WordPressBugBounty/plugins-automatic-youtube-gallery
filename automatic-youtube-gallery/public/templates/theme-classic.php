@@ -23,6 +23,7 @@ $params = array(
 $featured = $videos[0]; // Featured Video
 ?>
 <div class="automatic-youtube-gallery ayg">
+    <?php the_ayg_search_form( $attributes ); ?>
     <ayg-theme-classic id="ayg-<?php echo esc_attr( $attributes['uid'] ); ?>" class="ayg-theme ayg-theme-classic" data-params='<?php echo wp_json_encode( $params ); ?>'>
         <div class="ayg-player">
             <div class="ayg-player-container" style="max-width: <?php echo $player_width; ?>;">
@@ -36,7 +37,7 @@ $featured = $videos[0]; // Featured Video
                     <h2 class="ayg-player-title"><?php echo esc_html( $featured->title ); ?></h2>  
                 <?php endif; ?>
                 <?php if ( ! empty( $attributes['player_description'] ) ) : ?>  
-                    <ayg-description class="ayg-player-description"><?php if ( ! empty( $featured->description ) ) echo wp_kses_post( ayg_get_player_description( $featured ) ); ?></ayg-description>
+                    <ayg-description class="ayg-player-description"><?php if ( ! empty( $featured->description ) ) echo wp_kses_post( ayg_get_player_description( $featured, $attributes ) ); ?></ayg-description>
                 <?php endif; ?>
             </div>
         </div>

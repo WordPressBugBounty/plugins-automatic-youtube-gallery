@@ -30,6 +30,21 @@ class AYG_Admin {
 		if ( AYG_VERSION !== get_option( 'ayg_version' ) ) {	
 			$defaults = ayg_get_default_settings();				
 
+			// Insert the strings settings
+			if ( false == get_option( 'ayg_strings_settings' ) ) {
+				$gallery_settings = get_option( 'ayg_gallery_settings' );
+
+				$strings_settings = array(
+					'more_button_label'     => ! empty( $gallery_settings['more_button_label'] ) ? $gallery_settings['more_button_label'] : $defaults['ayg_strings_settings']['more_button_label'],
+					'previous_button_label' => ! empty( $gallery_settings['previous_button_label'] ) ? $gallery_settings['previous_button_label'] : $defaults['ayg_strings_settings']['previous_button_label'],
+					'next_button_label'     => ! empty( $gallery_settings['next_button_label'] ) ? $gallery_settings['next_button_label'] : $defaults['ayg_strings_settings']['next_button_label'],
+					'show_more_label'       => $defaults['ayg_strings_settings']['show_more_label'],
+					'show_less_label'       => $defaults['ayg_strings_settings']['show_less_label'],
+				);
+
+				add_option( 'ayg_strings_settings', $strings_settings );
+			}
+
 			// Update the player settings
 			$player_settings = get_option( 'ayg_player_settings' );
 
@@ -50,10 +65,8 @@ class AYG_Admin {
 				add_option( 'ayg_privacy_settings', $defaults['ayg_privacy_settings'] );
 			}
 
-			// Create a custom database table "{$wpdb->prefix}ayg_videos" 
-			if ( version_compare( AYG_VERSION, '2.1.0', '<=' ) ) {
-				ayg_db_create_videos_table();
-			}
+			// Create custom database tables
+			ayg_db_create_custom_tables();
 
 			// Delete the plugin cache
 			ayg_delete_cache();

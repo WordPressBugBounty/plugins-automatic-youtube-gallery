@@ -52,7 +52,7 @@ $single_url = ayg_get_single_video_url( $video, $attributes );
 
         // Play Icon
         echo sprintf(
-            '<svg xmlns="http://www.w3.org/2000/svg" class="ayg-icon ayg-thumbnail-icon-play" width="32" height="32" viewBox="0 0 32 32" fill="#fff" title="%1$s" aria-label="%1$s"><path d="M16 0c-8.837 0-16 7.163-16 16s7.163 16 16 16 16-7.163 16-16-7.163-16-16-16zM16 29c-7.18 0-13-5.82-13-13s5.82-13 13-13 13 5.82 13 13-5.82 13-13 13zM12 9l12 7-12 7z"></path></svg>',
+            '<svg xmlns="http://www.w3.org/2000/svg" fill="white" width="40" height="40" viewBox="0 0 24 24" class="ayg-icon ayg-thumbnail-icon-play" title="%1$s" aria-label="%1$s"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm14.024-.983a1.125 1.125 0 0 1 0 1.966l-5.603 3.113A1.125 1.125 0 0 1 9 15.113V8.887c0-.857.921-1.4 1.671-.983l5.603 3.113Z" clip-rule="evenodd" /></svg>',
             esc_attr__( 'Play', 'automatic-youtube-gallery' )
         );
 
@@ -71,7 +71,7 @@ $single_url = ayg_get_single_video_url( $video, $attributes );
             <div class="ayg-thumbnail-excerpt"><?php echo wp_kses_post( ayg_trim_words( $video->description, (int) $attributes['thumb_excerpt_length'] ) ); ?></div>
         <?php endif; ?>
         <?php if ( ! empty( $attributes['player_description'] ) && ! empty( $video->description ) ) : ?>  
-            <div class="ayg-thumbnail-description" style="display: none;"><?php echo wp_kses_post( ayg_get_player_description( $video ) ); ?></div>
+            <div class="ayg-thumbnail-description" style="display: none;"><?php echo wp_kses_post( ayg_get_player_description( $video, $attributes ) ); ?></div>
         <?php endif; ?>
     </div>           
 </div>

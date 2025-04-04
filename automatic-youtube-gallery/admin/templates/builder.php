@@ -98,7 +98,7 @@ foreach ( $fields['gallery']['fields'] as $field ) {
         <div class="ayg-col-content">
             <p class="about-description"><?php esc_html_e( '"Automatic YouTube Gallery" provides several methods to build your gallery. Choose one of the following methods best suited for you,', 'automatic-youtube-gallery' ); ?></p>
             <p><span class="dashicons dashicons-arrow-left-alt"></span> <?php esc_html_e( 'Use the shortcode builder in this page to build your gallery shortcode, then add it in your POST/PAGE.', 'automatic-youtube-gallery' ); ?></p>
-            <p>2. <?php printf( __( 'Use our "Automatic YouTube Gallery" <a href="%s" target="_blank">Gutenberg block</a> to build the gallery directly in your POST/PAGE.', 'automatic-youtube-gallery' ), 'https://plugins360.com/automatic-youtube-gallery/building-youtube-gallery-using-gutenberg/' ); ?></p>
+            <p>2. <?php printf( __( 'Use our "Automatic YouTube Gallery" <a href="%s" target="_blank" rel="noopener noreferrer">Gutenberg block</a> to build the gallery directly in your POST/PAGE.', 'automatic-youtube-gallery' ), 'https://plugins360.com/automatic-youtube-gallery/building-youtube-gallery-using-gutenberg/' ); ?></p>
             <p>3. <?php esc_html_e( 'Use our "Automatic YouTube Gallery" widget to add the gallery in your website sidebars.', 'automatic-youtube-gallery' ); ?></p>
         </div>
     </div>

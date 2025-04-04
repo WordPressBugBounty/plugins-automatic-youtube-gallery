@@ -6,7 +6,7 @@ Tags: youtube gallery, youtube playlist, youtube channel, youtube embed, youtube
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 5.6.20
-Stable tag: 2.5.6
+Stable tag: 2.5.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -29,7 +29,7 @@ https://www.youtube.com/watch?v=a90OGk42fJ4&rel=0
 
 ### STANDARD FEATURES
 
-* Create unlimited galleries.
+* Create unlimited & searchable galleries.
 * Automate your galleries using various YouTube sources like,
  * USERNAME
  * CHANNEL
@@ -120,6 +120,14 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 10. Widget
 
 == Changelog ==
+
+= 2.5.9 =
+
+* New: Introduced a search form to filter videos within the gallery for easier navigation.
+* New: Added a dedicated settings page to manage all button labels used by the plugin in one place.
+* Tweak: "Development Mode" is now disabled by default, as some users were unknowingly using it on production websites, leading to YouTube quota exceeded errors.
+* Tweak: Added an option to disable caching on a per-gallery basis for greater flexibility.
+* Fix: Addressed several minor bugs and implemented performance enhancements.
 
 = 2.5.6 =
 
@@ -277,6 +285,6 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 
 == Upgrade Notice ==
 
-= 2.5.6 =
+= 2.5.9 =
 
-Upgraded to the latest version of the Freemius SDK for enhanced compatibility. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)
+Introduces several new features, bug fixes & enhancements. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)

@@ -70,14 +70,6 @@ class AYG_Admin_Settings {
 	 * @since 1.0.0
 	 */
 	public function display_settings_form() {
-        $gallery_settings = get_option( 'ayg_gallery_settings' );
-        $player_settings  = get_option( 'ayg_player_settings' );
-	
-        $active_tab      = isset( $_GET['tab'] ) && array_key_exists( $_GET['tab'], $this->tabs ) ? sanitize_text_field( $_GET['tab'] ) : 'general';
-        $active_theme    = $gallery_settings['theme'];
-        $pagination_type = $gallery_settings['pagination_type'];
-        $player_type     = isset( $player_settings['player_type'] ) ? $player_settings['player_type'] : 'youtube';
-
 		require_once AYG_DIR . 'admin/templates/settings.php';		
 	}
 
@@ -125,31 +117,43 @@ class AYG_Admin_Settings {
                 'id'          => 'ayg_general_settings',
                 'title'       => __( 'General Settings', 'automatic-youtube-gallery' ),
                 'description' => '',
-                'tab'         => 'general'
+                'tab'         => 'general',
+                'page'        => 'ayg_general_settings'
+            ),
+            array(
+                'id'          => 'ayg_strings_settings',
+                'title'       => __( 'Button & Link Labels', 'automatic-youtube-gallery' ),
+                'description' => '',
+                'tab'         => 'general',
+                'page'        => 'ayg_strings_settings'
             ),
             array(
                 'id'          => 'ayg_gallery_settings',
                 'title'       => __( 'Gallery Settings', 'automatic-youtube-gallery' ),
                 'description' => '',
-				'tab'         => 'gallery'
+				'tab'         => 'gallery',
+                'page'        => 'ayg_gallery_settings'
             ),
             array(
                 'id'          => 'ayg_player_settings',
                 'title'       => __( 'Player Settings', 'automatic-youtube-gallery' ),
                 'description' => '',
-				'tab'         => 'player'
+				'tab'         => 'player',
+                'page'        => 'ayg_player_settings'
             ),
             array(
                 'id'          => 'ayg_livestream_settings',
                 'title'       => __( 'Livestream Settings', 'automatic-youtube-gallery' ),
                 'description' => '',
-				'tab'         => 'livestream'
+				'tab'         => 'livestream',
+                'page'        => 'ayg_livestream_settings'
             ),
             array(
                 'id'          => 'ayg_privacy_settings',
                 'title'       => __( 'GDPR Compliance', 'automatic-youtube-gallery' ),
                 'description' => __( 'These options will help with privacy restrictions such as GDPR and the EU Cookie Law.', 'automatic-youtube-gallery' ),
-                'tab'         => 'privacy'
+                'tab'         => 'privacy',
+                'page'        => 'ayg_privacy_settings'
             ),				
         );
 		
@@ -169,18 +173,11 @@ class AYG_Admin_Settings {
                 'name'              => 'api_key',
                 'label'             => __( 'Youtube API Key', 'automatic-youtube-gallery' ),
                 'description'       => sprintf( 
-                    __( 'Follow <a href="%s" target="_blank">this guide</a> to get your own API key.', 'automatic-youtube-gallery' ),  
+                    __( 'Follow <a href="%s" target="_blank" rel="noopener noreferrer">this guide</a> to get your own API key.', 'automatic-youtube-gallery' ),  
                     'https://plugins360.com/automatic-youtube-gallery/how-to-get-youtube-api-key/' 
                 ),
                 'type'              => 'text',
                 'sanitize_callback' => 'sanitize_text_field'
-            ),
-            array(
-                'name'              => 'development_mode',
-                'label'             => __( 'Development Mode', 'automatic-youtube-gallery' ),
-                'description'       => __( 'Does not cache API results when checked. We strongly recommend disabling this option when your site is live.', 'automatic-youtube-gallery' ),
-                'type'              => 'checkbox',
-                'sanitize_callback' => 'intval'
             ),
             array(
                 'name'              => 'lazyload',
@@ -188,6 +185,52 @@ class AYG_Admin_Settings {
                 'description'       => __( 'Enable this option to lazy load images and videos added by the plugin to enhance page load speed and performance. If you experience any issues with content display, try disabling this option.', 'automatic-youtube-gallery' ),
                 'type'              => 'checkbox',
                 'sanitize_callback' => 'intval'
+            ),
+            array(
+                'name'              => 'development_mode',
+                'label'             => __( 'Development Mode', 'automatic-youtube-gallery' ),
+                'description'       => __( 'Does not cache API results when checked. We strongly recommend disabling this option when your site is live.', 'automatic-youtube-gallery' ),
+                'type'              => 'checkbox',
+                'sanitize_callback' => 'intval'
+            )
+        );
+
+        // Strings Settings
+        $fields['ayg_strings_settings'] = array(
+            array(
+                'name'              => 'more_button_label',
+                'label'             => __( 'More Button Label', 'automatic-youtube-gallery' ),
+                'description'       => __( 'Text for the "Load More" button when pagination type is set to "More Button".', 'automatic-youtube-gallery' ),
+                'type'              => 'text',
+                'sanitize_callback' => 'sanitize_text_field'
+            ),
+            array(
+                'name'              => 'previous_button_label',
+                'label'             => __( 'Previous Button Label', 'automatic-youtube-gallery' ),
+                'description'       => __( 'Text for the "Previous" button when pagination type is set to "Pager".', 'automatic-youtube-gallery' ),
+                'type'              => 'text',
+                'sanitize_callback' => 'sanitize_text_field'
+            ),
+            array(
+                'name'              => 'next_button_label',
+                'label'             => __( 'Next Button Label', 'automatic-youtube-gallery' ),
+                'description'       => __( 'Text for the "Next" button when pagination type is set to "Pager".', 'automatic-youtube-gallery' ),
+                'type'              => 'text',
+                'sanitize_callback' => 'sanitize_text_field'
+            ),
+            array(
+                'name'              => 'show_more_label',
+                'label'             => __( 'Show More Label', 'automatic-youtube-gallery' ),
+                'description'       => __( 'Text for the "Show More" link that expands the video description below the player.', 'automatic-youtube-gallery' ),
+                'type'              => 'text',
+                'sanitize_callback' => 'sanitize_text_field'
+            ),
+            array(
+                'name'              => 'show_less_label',
+                'label'             => __( 'Show Less Label', 'automatic-youtube-gallery' ),
+                'description'       => __( 'Text for the "Show Less" link that collapses the video description below the player.', 'automatic-youtube-gallery' ),
+                'type'              => 'text',
+                'sanitize_callback' => 'sanitize_text_field'
             )
         );
 
@@ -293,8 +336,7 @@ class AYG_Admin_Settings {
     public function initialize_settings() {	
         // Register settings sections & fields
         foreach ( $this->sections as $section ) {
-		
-			$page_hook = "ayg_{$section['tab']}_settings";
+            $page_hook = isset( $section['page'] ) ? $section['page'] : $section['id'];
 			
 			// Sections
             if ( false == get_option( $section['id'] ) ) {

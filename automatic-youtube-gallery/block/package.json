@@ -1,6 +1,6 @@
 {
 	"name": "automatic-youtube-gallery-block",
-	"version": "2.5.1",
+	"version": "2.5.7",
 	"private": true,
 	"scripts": {
 		"build": "wp-scripts build --webpack-copy-php",

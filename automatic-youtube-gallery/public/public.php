@@ -66,6 +66,7 @@ class AYG_Public {
 	 * @since 1.0.0
 	 */
 	public function register_scripts() {
+		$strings_settings = get_option( 'ayg_strings_settings' );
 		$gallery_settings = get_option( 'ayg_gallery_settings' );
 		$player_settings  = get_option( 'ayg_player_settings' );
 		$privacy_settings = get_option( 'ayg_privacy_settings' );
@@ -95,6 +96,9 @@ class AYG_Public {
 		$scroll_top_offset = apply_filters( 'ayg_gallery_scrolltop_offset', $scroll_top_offset ); // Backward compatibility to 2.4.3
 		$scroll_top_offset = apply_filters( 'ayg_gallery_scroll_top_offset', $scroll_top_offset );
 
+		$show_more_label = ! empty( $strings_settings['show_more_label'] ) ? sanitize_text_field( $strings_settings['show_more_label'] ) : __( 'Show More', 'automatic-youtube-gallery' );
+		$show_less_label = ! empty( $strings_settings['show_less_label'] ) ? sanitize_text_field( $strings_settings['show_less_label'] ) : __( 'Show Less', 'automatic-youtube-gallery' );
+
 		$script_args = array(
 			'ajax_url'              => admin_url( 'admin-ajax.php' ),
 			'ajax_nonce'            => wp_create_nonce( 'ayg_ajax_nonce' ),	
@@ -107,8 +111,8 @@ class AYG_Public {
 			'cookieconsent'         => 0,
 			'top_offset'            => $scroll_top_offset,
 			'i18n'                  => array(
-				'show_more' => '[+] ' . __( 'Show More', 'automatic-youtube-gallery' ),
-				'show_less' => '[-] ' . __( 'Show Less', 'automatic-youtube-gallery' )
+				'show_more' => $show_more_label,
+				'show_less' => $show_less_label
 			)
 		);
 
@@ -173,7 +177,7 @@ class AYG_Public {
 	 *
 	 * @since 1.0.0
 	 */
-	public function ajax_callback_load_more_videos() {
+	public function ajax_callback_load_videos() {
 		// Security check
 		check_ajax_referer( 'ayg_ajax_nonce', 'security' );	
 
@@ -183,13 +187,19 @@ class AYG_Public {
 		$source_type = $attributes['type'];
 
 		$api_params = array(
+			'uid'        => $attributes['uid'],
 			'type'       => $source_type,
 			'src'        => $attributes['src'],
 			'order'      => $attributes['order'], // works only when type=search
+			'limit'      => (int) $attributes['limit'],
 			'maxResults' => (int) $attributes['per_page'],
 			'cache'      => (int) $attributes['cache'],
 			'pageToken'  => $attributes['pageToken']
 		);
+
+		if ( ! empty( $attributes['searchTerm'] ) ) {
+			$api_params['searchTerm'] = $attributes['searchTerm'];
+		}
 
 		$youtube_api = new AYG_YouTube_API();
 		$response = $youtube_api->query( $api_params );
@@ -197,6 +207,10 @@ class AYG_Public {
 		if ( ! isset( $response->error ) ) {
 			if ( isset( $response->page_info ) ) {
 				$json = $response->page_info;
+				$json['message'] = sprintf(
+					_n( '%s video found matching your query.', '%s videos found matching your query.', $json['videos_found'], 'automatic-youtube-gallery' ), 
+					number_format_i18n( $json['videos_found'] )
+				);
 			}
 
 			if ( isset( $response->videos ) ) {
