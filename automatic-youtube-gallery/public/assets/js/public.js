@@ -1295,21 +1295,26 @@
         customElements.define( 'ayg-search-form', AYGSearchFormElement );
         customElements.define( 'ayg-pagination', AYGPaginationElement );
 
-		// Locate gallery element on single video pages
-		const galleryId = ayg_config.gallery_id;
+		// Locate gallery element on single video pages       
+		const currentGalleryId = ayg_config.current_gallery_id;
+        const pageTopOffset    = parseInt( ayg_config.top_offset );        
 
-		if ( galleryId != '' && $( '#ayg-' + galleryId ).length ) {
-			if ( history.scrollRestoration ) {
-				history.scrollRestoration = 'manual';
-			} else {
-				window.onbeforeunload = function() {
-					window.scrollTo( 0, 0 );
-				}
-			}
-			
-			$( 'html, body' ).animate({
-				scrollTop: $( '#ayg-' + galleryId ).offset().top - ayg_config.top_offset
-			}, 500);	
+		if ( pageTopOffset >= 0 && currentGalleryId ) {
+            const $gallery = $( '#ayg-' + currentGalleryId );
+
+            if ( $gallery.length > 0 ) {
+                if ( history.scrollRestoration ) {
+                    history.scrollRestoration = 'manual';
+                } else {
+                    window.onbeforeunload = function() {
+                        window.scrollTo( 0, 0 );
+                    }
+                }
+                
+                $( 'html, body' ).animate({
+                    scrollTop: $gallery.offset().top - pageTopOffset
+                }, 500);	
+            }
 		}
 
 	});

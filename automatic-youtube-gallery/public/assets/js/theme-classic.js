@@ -25,7 +25,7 @@
             this._params = {};
             this._selectedVideoId = '';
             this._paginationType = 'none';
-            this._pageTopOffset = ayg_config.top_offset;
+            this._pageTopOffset = parseInt( ayg_config.top_offset );
         }
 
         /**
@@ -103,15 +103,17 @@
             }
             
             // Scroll to Top
-            $( 'html, body' ).animate({
-                scrollTop: this.$el.offset().top - this._pageTopOffset
-            }, 500, () => {
-                // Change URL in Browser Address Bar
-                const url = this.$selectedVideo.find( '.ayg-thumbnail' ).data( 'url' );
-                if ( url != '' ) {
-                    window.history.replaceState( null, null, url );
-                }				
-            });	
+            if ( this._pageTopOffset >= 0 ) {
+                $( 'html, body' ).animate({
+                    scrollTop: this.$el.offset().top - this._pageTopOffset
+                }, 500);
+            }
+
+            // Change URL in Browser Address Bar
+            const url = this.$selectedVideo.find( '.ayg-thumbnail' ).data( 'url' );
+            if ( url != '' ) {
+                window.history.replaceState( null, null, url );
+            }
             
             // Load Next Page
             if ( this._params.autoadvance == 1 && this._paginationType == 'more' ) {

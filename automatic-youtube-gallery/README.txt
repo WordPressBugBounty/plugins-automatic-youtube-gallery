@@ -4,9 +4,9 @@ Contributors: plugins360, wpvideogallery, freemius
 Donate link: https://plugins360.com
 Tags: youtube gallery, youtube playlist, youtube channel, youtube embed, youtube live
 Requires at least: 6.0
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 5.6.20
-Stable tag: 2.5.9
+Stable tag: 2.6.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -120,6 +120,11 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 10. Widget
 
 == Changelog ==
+
+= 2.6.0 =
+
+* New: Added support for disabling automatic page scroll to the video player by setting the "Page Scroll Top Offset" to -1, giving users more control over layout behavior.
+* Fix: Resolved various minor bugs and applied performance improvements for a smoother experience.
 
 = 2.5.9 =
 
@@ -285,6 +290,6 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 
 == Upgrade Notice ==
 
-= 2.5.9 =
+= 2.6.0 =
 
-Introduces several new features, bug fixes & enhancements. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)
+Introduces several enhancements and bug fixes, including a new option to disable automatic scrolling to the video player. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)

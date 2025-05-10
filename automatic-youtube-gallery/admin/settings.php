@@ -240,7 +240,7 @@ class AYG_Admin_Settings {
         $gallery_settings[] = array(
 			'name'              => 'scroll_top_offset',
 			'label'             => __( 'Page Scroll Top Offset', 'automatic-youtube-gallery' ),
-			'description'       => __( 'Set the top offset in pixels for scrolling to the video player after a thumbnail is clicked.', 'automatic-youtube-gallery' ),
+			'description'       => __( 'Set the top offset in pixels for scrolling to the video player after a thumbnail is clicked. Enter <code>-1</code> to disable automatic scrolling.', 'automatic-youtube-gallery' ),
 			'type'              => 'text',
 			'sanitize_callback' => 'ayg_sanitize_int'
 		);
