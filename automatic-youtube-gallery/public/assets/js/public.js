@@ -1290,10 +1290,21 @@
 	$(function() {
 
         // Register custom elements
-        customElements.define( 'ayg-player', AYGPlayerElement );
-        customElements.define( 'ayg-description', AYGDescriptionElement );
-        customElements.define( 'ayg-search-form', AYGSearchFormElement );
-        customElements.define( 'ayg-pagination', AYGPaginationElement );
+        if ( ! customElements.get( 'ayg-player' ) ) {
+            customElements.define( 'ayg-player', AYGPlayerElement );
+        }
+
+        if ( ! customElements.get( 'ayg-description' ) ) {
+            customElements.define( 'ayg-description', AYGDescriptionElement );
+        }
+
+        if ( ! customElements.get( 'ayg-search-form' ) ) {
+            customElements.define( 'ayg-search-form', AYGSearchFormElement );
+        }
+
+        if ( ! customElements.get( 'ayg-pagination' ) ) {
+            customElements.define( 'ayg-pagination', AYGPaginationElement );
+        }
 
 		// Locate gallery element on single video pages       
 		const currentGalleryId = ayg_config.current_gallery_id;

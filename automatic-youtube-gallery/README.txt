@@ -6,7 +6,7 @@ Tags: youtube gallery, youtube playlist, youtube channel, youtube embed, youtube
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 5.6.20
-Stable tag: 2.6.0
+Stable tag: 2.6.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -120,6 +120,13 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 10. Widget
 
 == Changelog ==
+
+= 2.6.1 =
+
+* Security Fix: Addressed multiple security issues to enhance overall plugin security.
+* Tweak: Updated the Freemius SDK to version 2.12.1.
+* Fix: Fixed compatibility issues with the Oxygen page builder.
+* Fix: Various minor bug fixes and performance improvements.
 
 = 2.6.0 =
 
@@ -290,6 +297,6 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 
 == Upgrade Notice ==
 
-= 2.6.0 =
+= 2.6.1 =
 
-Introduces several enhancements and bug fixes, including a new option to disable automatic scrolling to the video player. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)
+Introduces several bug fixes & enhancements. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)

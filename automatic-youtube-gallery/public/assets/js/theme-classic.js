@@ -182,7 +182,9 @@
 	 */
 	$(function() {		
 		// Register custom element
-        customElements.define( 'ayg-theme-classic', AYGThemeClassicElement );
+        if ( ! customElements.get( 'ayg-theme-classic' ) ) {
+            customElements.define( 'ayg-theme-classic', AYGThemeClassicElement );
+        }
     });
 
 })( jQuery );
