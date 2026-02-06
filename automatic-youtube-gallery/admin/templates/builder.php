@@ -108,6 +108,6 @@ foreach ( $fields['gallery']['fields'] as $field ) {
 <div id="ayg-shortcode-modal" class="ayg-modal mfp-hide">
     <div class="ayg-modal-body">
         <p><?php esc_html_e( 'Congrats! copy the shortcode below and paste it in your POST/PAGE where you need the gallery,', 'automatic-youtube-gallery' ); ?></p>
-        <textarea id="aiovg-shortcode" class="widefat code" autofocus="autofocus" onfocus="this.select()"></textarea>
+        <textarea id="aiovg-shortcode" class="widefat code" rows="3" autofocus="autofocus" onfocus="this.select()"></textarea>
     </div>
 </div>

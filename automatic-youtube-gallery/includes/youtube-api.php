@@ -235,12 +235,16 @@ class AYG_YouTube_API {
 				break;
 			
 			default: // video
+				if ( wp_http_validate_url( $id ) ) {
+					$id = '';
+				}
+
 				$url = parse_url( $url );
 			
 				if ( array_key_exists( 'host', $url ) ) {				
 					if ( 0 === strcasecmp( $url['host'], 'youtu.be' ) ) {
 						$id = substr( $url['path'], 1 );
-					} elseif ( 0 === strcasecmp( $url['host'], 'www.youtube.com' ) ) {
+					} elseif ( 0 === strcasecmp( $url['host'], 'www.youtube.com' ) || 0 === strcasecmp( $url['host'], 'youtube.com' ) ) {
 						if ( isset( $url['query'] ) ) {
 							parse_str( $url['query'], $url['query'] );
 
@@ -251,8 +255,7 @@ class AYG_YouTube_API {
 							
 						if ( empty( $id ) ) {
 							$url['path'] = explode( '/', substr( $url['path'], 1 ) );
-
-							if ( in_array( $url['path'][0], array( 'e', 'embed', 'v' ) ) ) {
+							if ( in_array( $url['path'][0], array( 'e', 'embed', 'v', 'shorts', 'live' ) ) ) {
 								$id = $url['path'][1];
 							}
 						}

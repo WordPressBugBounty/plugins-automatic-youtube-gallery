@@ -88,7 +88,7 @@
             const description = this.$selectedVideo.find( '.ayg-thumbnail-description' ).html();
             const poster = this.$selectedVideo.find( '.ayg-thumbnail-image' ).attr( 'src' );
 
-            this.player.change({
+            this.player.play({
                 id:  this._selectedVideoId,
                 title: title,
                 poster: poster

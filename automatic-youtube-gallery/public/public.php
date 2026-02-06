@@ -166,9 +166,14 @@ class AYG_Public {
 	 *
 	 * @since  1.0.0
 	 * @param  array  $attributes An associative array of attributes.
+	 * @param  string $content    Enclosing content.
 	 * @return string             Shortcode HTML output.
 	 */
-	public function shortcode_automatic_youtube_gallery( $attributes ) {
+	public function shortcode_automatic_youtube_gallery( $attributes, $content = null ) {
+		if ( ! empty( $content ) ) {
+			$attributes['content'] = $content;
+		}
+
 		return ayg_build_gallery( $attributes );
 	}
 

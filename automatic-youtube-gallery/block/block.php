@@ -129,6 +129,13 @@ class AYG_Block {
 			unset( $atts['uid'] );
 		}
 
+		// If popup is enabled and type is video, force theme to popup		
+		if ( isset( $atts['popup'] ) && ! empty( $atts['popup'] ) ) {
+			if ( isset( $atts['type'] ) && 'video' == $atts['type'] ) {
+				$atts['theme'] = 'popup';
+			}
+		}
+
 		// Output
 		$output  = '<div ' . get_block_wrapper_attributes() . '>';
 		$output .= ayg_build_gallery( $this->clean_attributes( $atts ) );

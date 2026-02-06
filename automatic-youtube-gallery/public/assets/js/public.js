@@ -40,7 +40,7 @@
 
             :host:not([ratio="auto"]) #root {      
                 position: relative;
-                padding-bottom: calc(100% / (16 / 9));
+                padding-bottom: 56.25%;
                 width: 100%;
                 height: 0;
             }
@@ -154,7 +154,7 @@
                 display: none;
             }
         </style>
-        <div id="root">
+        <div id="root" part="root">
             <button type="button" id="play-button" aria-label="Play Video"></button>
             <div id="cookieconsent-modal">
                 <div id="cookieconsent-message">Please accept YouTube cookies to play this video. By accepting you will be accessing content from YouTube, a service provided by an external third party.</div>
@@ -198,9 +198,11 @@
             this._hasAutoplayRequested = false;
             this._hasMuted = false;
             this._hasYTApiEnabled = false;
+            this._hideYouTubeLogo = false;
             this._playerApi = null;
             this._playerType = ayg_config.player_type;
             this._playerColor = ayg_config.player_color;
+            this._pendingPlay = false;
             this._hasCookieConsent = parseInt( ayg_config.cookieconsent ) == 1 ? true : false;
             this._cookieConsentMessage = ayg_config.cookieconsent_message || '';
             this._cookieConsentButtonLabel = ayg_config.cookieconsent_button_label || '';
@@ -221,7 +223,8 @@
             this._hasPlayerControls = ! ( query.has( 'controls' ) && ( query.get( 'controls' ) == 0 || query.get( 'controls' ) == false ) );    
             this._hasAutoplayRequested = query.has( 'autoplay' ) && ( query.get( 'autoplay' ) == 1 || query.get( 'autoplay' ) == true );    
             this._hasMuted = query.has( 'mute' ) && ( query.get( 'mute' ) == 1 || query.get( 'mute' ) == true );
-            this._hasYTApiEnabled = query.has( 'enablejsapi' ) && ( query.get( 'enablejsapi' ) == 1 || query.get( 'enablejsapi' ) == true );    
+            this._hasYTApiEnabled = query.has( 'enablejsapi' ) && ( query.get( 'enablejsapi' ) == 1 || query.get( 'enablejsapi' ) == true );  
+            this._hideYouTubeLogo = query.has( 'modestbranding' ) && ( query.get( 'modestbranding' ) == 1 || query.get( 'modestbranding' ) == true );    
             
             if ( this._playerType == 'custom' ) {
                 this._forcePlayerElement = true;
@@ -423,6 +426,7 @@
             iframeEl.height = 315;       
             iframeEl.title = this.title;        
             iframeEl.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            iframeEl.referrerPolicy = 'strict-origin-when-cross-origin';
             iframeEl.allowFullscreen = true;
 
             if ( forceAutoplay ) {
@@ -444,6 +448,12 @@
         }
 
         _initPlyrApi( forceAutoplay ) {
+            // Hide YouTube logo if needed
+            if ( this._hideYouTubeLogo ) {
+                this.classList.add( 'hide-youtube-logo' );
+            }
+
+            // Load Plyr library
             let options = {
                 resetOnEnd: true,
                 fullscreen: {
@@ -512,13 +522,24 @@
                 this._playerApi = new YT.Player( this.playerEl, {
                     events: {
                         'onReady': ( event ) => {   
-                            if ( forceAutoplay ) {
-                                this.play();
+                            if ( forceAutoplay && this._pendingPlay ) {
+                                event.target.playVideo();
+                                this._pendingPlay = false;
                             }
                         },
                         'onStateChange': ( event ) => {
                             if ( 0 == event.data ) { // ended
-                                this._dispatchEvent( 'ended' );
+                                // Force exit from fullscreen if still active
+                                if ( document.fullscreenElement ) {
+                                    document.exitFullscreen().catch(() => {});
+
+                                    // Delay before replacing iframe
+                                    setTimeout( () => {
+                                        this._dispatchEvent( 'ended' );
+                                    }, 500 );
+                                } else {
+                                    this._dispatchEvent( 'ended' );
+                                }
                             }
                     
                             if ( 1 == event.data ) { // playing
@@ -674,11 +695,18 @@
             this._render();
         }
         
-        play() {
-            if ( ! this._playerApi ) return false;
+        play( video = null ) {
+            // Handle gesture-initiated autoplay or manual play
+            if ( video && typeof video === 'object' ) {
+                this.change( video );
+                return;
+            }
 
-            if ( this._playerApi.playVideo ) {
+            // Fallback: try to play the current video
+            if ( this._playerApi && this._playerApi.playVideo ) {
                 this._playerApi.playVideo();
+            } else {
+                this._pendingPlay = true;
             }
         } 
 

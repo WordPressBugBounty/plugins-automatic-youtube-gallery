@@ -4,9 +4,9 @@ Contributors: plugins360, wpvideogallery, freemius
 Donate link: https://plugins360.com
 Tags: youtube gallery, youtube playlist, youtube channel, youtube embed, youtube live
 Requires at least: 6.0
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 5.6.20
-Stable tag: 2.6.1
+Stable tag: 2.6.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -120,6 +120,20 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 10. Widget
 
 == Changelog ==
+
+= 2.6.5 =
+
+* Tweak: Updated Freemius SDK to version 2.13.0.
+* Fix: WordPress 6.9 compatibility issues.
+
+= 2.6.4 =
+
+* New: Added support for displaying single videos in a popup.
+* Tweak: Enhanced Schema.org (JSON-LD) structured data support for all single video layouts.
+* Tweak: Updated Freemius SDK to version 2.12.2.
+* Fix: Resolved issue where the fullscreen button stopped working during continuous play in fullscreen mode.
+* Fix: Improved compatibility with the Divi page builder.
+* Fix: Various minor bug fixes and performance enhancements.
 
 = 2.6.1 =
 
@@ -297,6 +311,6 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 
 == Upgrade Notice ==
 
-= 2.6.1 =
+= 2.6.5 =
 
-Introduces several bug fixes & enhancements. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)
+Introduces several new features, bug fixes & enhancements. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)

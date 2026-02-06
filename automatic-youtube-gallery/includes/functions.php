@@ -28,17 +28,22 @@ function ayg_build_gallery( $args ) {
 	global $post;
 
 	// Vars
-	$fields   = ayg_get_editor_fields();
+	$fields = ayg_get_editor_fields();
+	$excluded_fields = array( 'popup' ); // Fields not part of attributes
 	$defaults = array();
 
 	foreach ( $fields as $key => $value ) {
 		foreach ( $value['fields'] as $field ) {
+			if ( in_array( $field['name'], $excluded_fields ) ) {
+				continue;
+			}
+
 			$defaults[ $field['name'] ] = $field['value'];
 		}
 	}
 
 	$defaults = array_merge( $defaults, (array) $strings_settings );
-	$attributes = shortcode_atts( $defaults, $args );
+	$attributes = shortcode_atts( $defaults, $args, 'automatic_youtube_gallery' );
 
 	$attributes['post_id'] = 0;
 	if ( isset( $post->ID ) ) {
@@ -1112,6 +1117,29 @@ function ayg_insert_array_after( $key, $array, $new_array ) {
   	}
 		
   	return $array;  
+}
+
+/**
+ * Detect if the client is using an iOS device (iPhone, iPad, or iPod).
+ *
+ * @return bool True if the user agent string suggests an iOS device, false otherwise.
+ */
+function ayg_is_ios() {
+    if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
+        return false;
+    }
+
+    $ua = strtolower( $_SERVER['HTTP_USER_AGENT'] );
+
+    if ( 
+		strpos( $ua, 'iphone' ) !== false ||
+        strpos( $ua, 'ipad' ) !== false ||
+        strpos( $ua, 'ipod' ) !== false 
+	) {
+        return true;
+    }
+
+    return false;
 }
 
 /**

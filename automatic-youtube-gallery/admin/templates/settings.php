@@ -29,7 +29,7 @@ foreach ( $this->sections as $section ) {
 }
 ?>
 
-<div id="ayg-settings" class="wrap ayg-settings theme-<?php echo esc_attr( $active_theme ); ?> player_type-<?php echo esc_attr( $player_type ); ?>">
+<div id="ayg-settings" class="ayg ayg-settings theme-<?php echo esc_attr( $active_theme ); ?> player_type-<?php echo esc_attr( $player_type ); ?> wrap">
     <?php settings_errors(); ?>
 
     <h2 class="nav-tab-wrapper wp-clearfix">

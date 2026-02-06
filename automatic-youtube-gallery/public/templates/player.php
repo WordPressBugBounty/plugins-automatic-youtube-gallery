@@ -57,4 +57,6 @@ if ( ! empty( $attributes['lazyload'] ) ) {
 }
 
 $player_html = sprintf( '<ayg-player %s></ayg-player>', ayg_combine_video_attributes( $video_attributes ) );
-echo $player_html;
+
+// Allow filtering before output
+echo apply_filters( 'the_ayg_player', $player_html, $video, $attributes );

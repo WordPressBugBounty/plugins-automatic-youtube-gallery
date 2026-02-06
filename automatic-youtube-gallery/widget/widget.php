@@ -58,6 +58,13 @@ class AYG_Widget extends WP_Widget {
 		if ( isset( $args['widget_id'] ) ) {
 			$instance['deprecated_uid'] = md5( $args['widget_id'] );
 		}
+
+		// If popup is enabled and type is video, force theme to popup	
+		if ( isset( $instance['popup'] ) && ! empty( $instance['popup'] ) ) {
+			if ( isset( $instance['type'] ) && 'video' == $instance['type'] ) {
+				$instance['theme'] = 'popup';
+			}
+		}
 		
 		echo ayg_build_gallery( $instance );
 		

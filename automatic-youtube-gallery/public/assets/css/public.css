@@ -173,6 +173,7 @@ ayg-search-form .ayg-status-message.ayg-error {
  *--------------------------------------------------------------------------------------------*/
 /* Custom Element */
 ayg-player {
+    border-radius: 3px;
     background: #000 url( '../../../public/assets/images/spinner-dark.gif' ) center center no-repeat;
 }
 
@@ -210,6 +211,11 @@ ayg-player .plyr--initialized.plyr--no-controls .plyr__control--overlaid {
 
 ayg-player .plyr--initialized iframe {
     pointer-events: none;
+}
+
+ayg-player.hide-youtube-logo .plyr iframe {
+    top: -50%;
+    height: 200%;
 }
 
 /* Theme Integration */
@@ -342,6 +348,7 @@ ayg-player .plyr--initialized iframe {
 
 .ayg-thumbnail-image {
     display: block;
+    border-radius: 3px;
     width: 100%;
     height: auto;    
 }
@@ -353,6 +360,12 @@ ayg-player .plyr--initialized iframe {
 	top: 50%;
 	left: 50%;
 	transform: translate( -50%, -50% );
+    width: 30%;
+    height: 30%;
+    min-width: 36px;
+    min-height: 36px;
+    max-width: 64px;
+    max-height: 64px;
 	vertical-align: middle;	
 	z-index: 3;	
 }
@@ -381,7 +394,7 @@ ayg-player .plyr--initialized iframe {
 
 .ayg-thumbnail-title {
     line-height: 1.5;
-    font-size: 1.125em;
+    font-size: 1.1em;
     font-weight: 600;
 }
 

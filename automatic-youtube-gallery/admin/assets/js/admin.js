@@ -166,7 +166,9 @@
 
 			// Attributes
 			var props = {};
+			var popup = 0;
 			
+			// Loop through all editor fields
 			$( '.ayg-editor-control', '#ayg-shortcode-builder' ).each(function() {							
 				var $elem = $( this ).find( '.ayg-editor-field' );
 				var type  = $elem.attr( 'type' );
@@ -174,6 +176,12 @@
 				var value = $elem.val();
 				var def   = $elem.data( 'default' );
 				
+				// Skip popup field
+				if ( 'popup' == key ) {
+					popup = $elem.is( ':checked' ) ? 1 : 0;
+					return true; // continue
+				}	
+
 				// field type = checkbox
 				if ( 'checkbox' == type ) {
 					value = $elem.is( ':checked' ) ? 1 : 0;
@@ -219,7 +227,14 @@
 				}				
 			});
 
+			// If popup is enabled and type is video, force theme to popup
+			if ( popup && props.hasOwnProperty( 'type' ) && 'video' == props.type ) {
+				props.theme = 'popup';
+			}
+
+			// Build attributes string
 			var attrs = '';
+
 			for ( var key in props ) {
 				if ( props.hasOwnProperty( key ) ) {
 					attrs += ( ' ' + key + '="' + props[ key ] + '"' );

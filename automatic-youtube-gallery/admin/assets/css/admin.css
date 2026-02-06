@@ -24,6 +24,26 @@
 	visibility: visible;
 }
 
+/* Tabs */
+.ayg .nav-tab {
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
+	padding: 5px 15px;
+}
+
+@media screen and (max-width: 782px) {
+	.ayg h2.nav-tab-wrapper {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.5em;
+	}
+
+	.ayg h2.nav-tab-wrapper .nav-tab {
+		margin: 0;
+	}
+}
+
 /*----------------------------------------------------------------------------------------------
  *
  *	Dashboard
@@ -36,6 +56,7 @@
 
 #ayg-dashboard .wp-badge {
 	margin-bottom: 0;
+	border-radius: 3px;
 	background: #EC4338 url( '../images/logo.png' ) no-repeat top;
 }
 
@@ -84,7 +105,7 @@
 .ayg-modal {
 	position: relative;  	
 	margin: 2em auto;
-	border-radius: 2px;
+	border-radius: 3px;
 	background-color: #fff;
 	padding: 1em;  
 	width: auto;
@@ -129,20 +150,25 @@
 .ayg-editor {
 	display: flex;
 	flex-direction: column;
-	gap: 2px;
+	gap: 0.5em;
 }
 
 .ayg-editor .widefat {
 	max-width: 100%;
 }
 
+.ayg-editor .ayg-editor-section {
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	overflow: hidden;
+}
+
 .ayg-editor .ayg-editor-section-header {
 	display: flex;
 	align-items: center;
 	gap: 0.5em;	
-	padding: 0.5em;
+	padding: 0.75em;
 	background: #e5e5e5;   
-	border: 1px solid #ccc; 
 	cursor: pointer;
 }
 
@@ -177,7 +203,7 @@
 	margin-top: -1px;
 	padding: 1em;
 	background: #fff;
-	border: 1px solid #ccc;
+	border-top: 1px solid #ccc;
 }
 
 .ayg-editor-control {
