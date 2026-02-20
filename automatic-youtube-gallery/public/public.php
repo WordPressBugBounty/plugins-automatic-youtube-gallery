@@ -36,28 +36,21 @@ class AYG_Public {
 	 * @since 1.0.0
 	 */
 	public function register_styles() {
-		$player_settings = get_option( 'ayg_player_settings' );
-
-		$deps = array();
-		if ( isset( $player_settings['player_type'] ) && 'custom' == $player_settings['player_type'] ) {
-			$deps[] = AYG_SLUG . '-plyr';
-		}
-
-		wp_register_style( 
-			AYG_SLUG . '-plyr', 
-			AYG_URL . 'vendor/plyr/plyr.css', 
-			array(), 
-			'3.7.8', 
-			'all' 
-		);
-
+		$general_settings = ayg_get_option( 'ayg_general_settings' );
+		
+		// Register Styles
 		wp_register_style( 
 			AYG_SLUG . '-public', 
 			AYG_URL . 'public/assets/css/public.min.css', 
-			$deps, 
+			array(), 
 			AYG_VERSION, 
 			'all' 
 		);
+
+		// Enqueue Styles
+		if ( ! empty( $general_settings['force_load_assets']['css'] ) ) {
+			wp_enqueue_style( AYG_SLUG . '-public' );
+		}
 	}
 
 	/**
@@ -66,31 +59,11 @@ class AYG_Public {
 	 * @since 1.0.0
 	 */
 	public function register_scripts() {
-		$strings_settings = get_option( 'ayg_strings_settings' );
-		$gallery_settings = get_option( 'ayg_gallery_settings' );
-		$player_settings  = get_option( 'ayg_player_settings' );
-		$privacy_settings = get_option( 'ayg_privacy_settings' );
-
-		$deps = array( 'jquery' );
-		if ( isset( $player_settings['player_type'] ) && 'custom' == $player_settings['player_type'] ) {
-			$deps[] = AYG_SLUG . '-plyr';
-		}
-
-		wp_register_script( 
-			AYG_SLUG . '-plyr', 
-			AYG_URL . 'vendor/plyr/plyr.polyfilled.js', 
-			array(), 
-			'3.7.8', 
-			array( 'strategy' => 'defer' )  
-		);
-
-		wp_register_script( 
-			AYG_SLUG . '-public', 
-			AYG_URL . 'public/assets/js/public.min.js', 
-			$deps, 
-			AYG_VERSION, 
-			array( 'strategy' => 'defer' )  
-		);
+		$general_settings = ayg_get_option( 'ayg_general_settings' );
+		$gallery_settings = ayg_get_option( 'ayg_gallery_settings' );
+		$player_settings  = ayg_get_option( 'ayg_player_settings' );
+		$privacy_settings = ayg_get_option( 'ayg_privacy_settings' );
+		$strings_settings = ayg_get_option( 'ayg_strings_settings' );
 
 		$scroll_top_offset = ( isset( $gallery_settings['scroll_top_offset'] ) && ! empty( $gallery_settings['scroll_top_offset'] ) ) ? (int) $gallery_settings['scroll_top_offset'] : 10;
 		$scroll_top_offset = apply_filters( 'ayg_gallery_scrolltop_offset', $scroll_top_offset ); // Backward compatibility to 2.4.3
@@ -100,6 +73,8 @@ class AYG_Public {
 		$show_less_label = ! empty( $strings_settings['show_less_label'] ) ? sanitize_text_field( $strings_settings['show_less_label'] ) : __( 'Show Less', 'automatic-youtube-gallery' );
 
 		$script_args = array(
+			'plugin_url'            => AYG_URL,
+			'plugin_version'        => AYG_VERSION,
 			'ajax_url'              => admin_url( 'admin-ajax.php' ),
 			'ajax_nonce'            => wp_create_nonce( 'ayg_ajax_nonce' ),	
 			'current_page_url'      => get_permalink(),
@@ -129,6 +104,31 @@ class AYG_Public {
 			}
 		}
 
+		// Register Scripts
+		$deps = array( 'jquery' );
+
+		wp_register_script( 
+			AYG_SLUG . '-plyr', 
+			AYG_URL . 'vendor/plyr/plyr.polyfilled.js', 
+			array(), 
+			'3.7.8', 
+			array( 'strategy' => 'defer' )  
+		);		
+		
+		if ( empty( $general_settings['force_load_assets']['js'] ) ) {
+			if ( isset( $player_settings['player_type'] ) && 'custom' == $player_settings['player_type'] ) {
+				$deps[] = AYG_SLUG . '-plyr';
+			}
+		}
+
+		wp_register_script( 
+			AYG_SLUG . '-public', 
+			AYG_URL . 'public/assets/js/public.min.js', 
+			$deps, 
+			AYG_VERSION, 
+			array( 'strategy' => 'defer' )  
+		);
+
 		wp_localize_script( 
 			AYG_SLUG . '-public', 
 			'ayg_config', 
@@ -142,6 +142,11 @@ class AYG_Public {
 			AYG_VERSION, 
 			array( 'strategy' => 'defer' )  
 		);
+
+		// Enqueue Scripts
+		if ( ! empty( $general_settings['force_load_assets']['js'] ) ) {
+			wp_enqueue_script( AYG_SLUG . '-public' );
+		}
 	}
 
 	/**

@@ -18,6 +18,7 @@
             :host([ratio="auto"]) {
                 position: absolute;
                 inset: 0;
+                width: 100%;
                 height: 100%;
             }
 
@@ -153,6 +154,35 @@
             #root.initialized > #cookieconsent-modal {            
                 display: none;
             }
+
+            /* Plyr styles */
+            #root .plyr {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+            }            
+
+            #root .plyr__control--overlaid {
+                --plyr-control-spacing: 15px;
+            }
+
+            #root .plyr__control--overlaid svg {
+                --plyr-control-icon-size: 27px;
+            }
+
+            #root .plyr--youtube-no-logo iframe {
+                top: -50%;
+                height: 200%;
+            }
+
+            #root .plyr--initialized.plyr--no-controls .plyr__control--overlaid {
+                display: none;
+            }
+
+            #root .plyr--initialized iframe {
+                pointer-events: none;
+            }
         </style>
         <div id="root" part="root">
             <button type="button" id="play-button" aria-label="Play Video"></button>
@@ -160,9 +190,140 @@
                 <div id="cookieconsent-message">Please accept YouTube cookies to play this video. By accepting you will be accessing content from YouTube, a service provided by an external third party.</div>
                 <button type="button" id="cookieconsent-button">I Agree</button>
             </div>
-            <slot name="player"></slot>
+            <div id="player" class="plyr__video-embed"></div>
         </div>
     `;
+
+    /**
+	 * Load css files.
+	 */
+	const stylePromises = {};
+
+	window.AYGLoadStyle = ( file ) => {
+		if ( ! file || ! file.id ) {
+			return Promise.resolve();
+		}
+		
+		if ( stylePromises[ file.id ] ) {
+			return stylePromises[ file.id ];
+		}
+
+		if ( document.getElementById( file.id ) ) {
+			return Promise.resolve();
+		}
+
+		stylePromises[ file.id ] = new Promise(( resolve, reject ) => {
+			const link = document.createElement( 'link' );
+
+			link.id      = file.id;
+			link.rel     = 'stylesheet';
+			link.href    = file.href;
+			link.onload  = resolve;
+			link.onerror = reject;
+
+			document.head.appendChild( link );
+		});
+
+		return stylePromises[ file.id ];
+	};
+
+	/**
+	 * Load script files.
+	 */
+	const scriptPromises = {};
+
+	window.AYGLoadScript = ( file ) => {
+		if ( ! file || ! file.id ) {
+			return Promise.resolve();
+		}
+		
+		if ( scriptPromises[ file.id ] ) {
+			return scriptPromises[ file.id ];
+		}
+
+		if ( document.getElementById( file.id ) ) {
+			return Promise.resolve();
+		}
+
+		scriptPromises[ file.id ] = new Promise(( resolve, reject ) => {
+			const script = document.createElement( 'script' );
+
+			script.id      = file.id;
+			script.src     = file.src;
+			script.defer   = true;
+			script.onload  = resolve;
+            script.onerror = reject;
+
+			document.body.appendChild( script );
+		});
+
+		return scriptPromises[ file.id ];
+	};
+
+    /**
+     * Get player HTML.
+     */
+    window.getAYGPlayerHtml = ( video, params ) => {
+        let siteurl = 'https://www.youtube.com';
+        if ( ayg_config.privacy_enhanced_mode == 1 ) {
+            siteurl = 'https://www.youtube-nocookie.com';
+        }
+
+        video.src = siteurl + '/embed/' + video.id + '?enablejsapi=1&playsinline=1&rel=0';
+
+        if ( ayg_config.hasOwnProperty( 'origin' ) && ayg_config.origin.length > 0 ) {
+            video.src += '&origin=' + ayg_config.origin;
+        }
+
+        let autoplay = params.hasOwnProperty( 'autoplay' ) ? parseInt( params.autoplay ) : 0;
+        if ( autoplay == 1 ) {
+            video.src += '&autoplay=1';
+        }
+
+        let muted = params.hasOwnProperty( 'muted' ) ? parseInt( params.muted ) : 0;
+        if ( muted == 1 ) {
+            video.src += '&mute=1';
+        }
+
+        let controls = params.hasOwnProperty( 'controls' ) ? parseInt( params.controls ) : 1;
+        if ( controls == 0 ) {
+            video.src += '&controls=0';
+        }
+
+        let modestbranding = params.hasOwnProperty( 'modestbranding' ) ? parseInt( params.modestbranding ) : 0;
+        if ( modestbranding == 1 ) {
+            video.src += '&modestbranding=1';
+        }
+
+        let cc_load_policy = params.hasOwnProperty( 'cc_load_policy' ) ? parseInt( params.cc_load_policy ) : 0;
+        if ( cc_load_policy == 1 ) {
+            video.src += '&cc_load_policy=1';
+        }
+
+        let iv_load_policy = params.hasOwnProperty( 'iv_load_policy' ) ? parseInt( params.iv_load_policy ) : 0;
+        if ( iv_load_policy == 0 ) {
+            video.src += '&iv_load_policy=3';
+        }
+
+        if ( params.hasOwnProperty( 'hl' ) && params.hl.length > 0 ) {
+            video.src += '&hl=' + params.hl;
+        }
+
+        if ( params.hasOwnProperty( 'cc_lang_pref' ) && params.cc_lang_pref.length > 0 ) {
+            video.src += '&cc_lang_pref=' + params.cc_lang_pref;
+        }
+
+        // Build player html
+        let html = '<ayg-player class="mfp-prevent-close"';		
+        html += ' title="' + video.title + '"';
+        html += ' src="' + video.src + '"';		
+        html += ' poster="' + video.poster + '"';
+        html += ' ratio="' + video.ratio + '"';
+        html += '>';
+        html += '</ayg-player>';
+
+        return html;
+    }
 
     /**
      * Player Element.
@@ -184,7 +345,8 @@
             this.playButtonEl = shadowDom.querySelector( '#play-button' );
             this.cookieConsentMessageEl = shadowDom.querySelector( '#cookieconsent-message' );
             this.cookieConsentButtonEl = shadowDom.querySelector( '#cookieconsent-button' );
-            this.playerEl = null; 
+            this.playerEl = shadowDom.querySelector( '#player' );
+            this.iframeEl = null;
             
             // Set references to the private properties used by the component
             this._isRendered = false;
@@ -239,7 +401,7 @@
             }
 
             if ( this._hasAutoplayRequested ) {
-            this._forcePlayerElement = true;
+                this._forcePlayerElement = true;
             }        
         
             this._render();
@@ -395,24 +557,28 @@
 
             this._addClass( 'initialized' );
 
-            const iframeEl = this._createIframeEmbed( forceAutoplay );
+            this.iframeEl = this._createIframeEmbed( forceAutoplay );
+            this.playerEl.append( this.iframeEl );
 
             if ( this._playerType == 'custom' ) {
-                const videoPlaceholderEl = document.createElement( 'div' );
-                videoPlaceholderEl.setAttribute( 'slot', 'player' );
-                videoPlaceholderEl.style = '--plyr-color-main: ' + this._playerColor;
-                videoPlaceholderEl.append( iframeEl );
+                this.playerEl.style = '--plyr-color-main: ' + this._playerColor;               
 
-                this.playerEl = videoPlaceholderEl;
-                this.append( videoPlaceholderEl );
+                const plyrPromise =	this._loadStyle( ayg_config.plugin_url + 'vendor/plyr/plyr.css?ver=3.7.8' )
+                    .then( () => {
+                        return window.Plyr ? Promise.resolve() : window.AYGLoadScript({
+                            id: 'automatic-youtube-gallery-plyr-js',
+                            src: ayg_config.plugin_url + 'vendor/plyr/plyr.polyfilled.js?ver=3.7.8'
+                        });
+                    });
 
-                this._initPlyrApi( forceAutoplay );           
+                plyrPromise.then( () => {
+                    this._initPlyrApi( forceAutoplay );
+                }).catch( error => {
+                    console.error( 'Failed to initialize Plyr:', error );
+                });                           
             } else {
-                this.playerEl = iframeEl;
-                this.rootEl.append( iframeEl );
-
                 // Set focus for a11y
-                iframeEl.focus();        
+                this.iframeEl.focus();        
                 
                 this._initYTApi( forceAutoplay );
             }
@@ -448,13 +614,9 @@
         }
 
         _initPlyrApi( forceAutoplay ) {
-            // Hide YouTube logo if needed
-            if ( this._hideYouTubeLogo ) {
-                this.classList.add( 'hide-youtube-logo' );
-            }
-
             // Load Plyr library
             let options = {
+                iconUrl: ayg_config.plugin_url + 'vendor/plyr/plyr.svg',
                 resetOnEnd: true,
                 fullscreen: {
                     enabled: true,
@@ -488,6 +650,11 @@
             this._plyr.on( 'ready', ( event ) => {
                 this._playerApi = event.detail.plyr.embed;
                 this._plyr.autoplay = true;
+
+                // Hide YouTube logo if needed
+                if ( this._hideYouTubeLogo ) {
+                    event.target.className += ' plyr--youtube-no-logo';
+                }
             });
 
             let classNamesUpdated = false;
@@ -519,7 +686,7 @@
             if ( ! this._hasYTApiEnabled ) return false;
 
             this._loadYTApi().then(() => {
-                this._playerApi = new YT.Player( this.playerEl, {
+                this._playerApi = new YT.Player( this.iframeEl, {
                     events: {
                         'onReady': ( event ) => {   
                             if ( forceAutoplay && this._pendingPlay ) {
@@ -561,9 +728,10 @@
                 if ( typeof window.YT === 'undefined' && typeof AYGPlayerElement.isApiLoaded === 'undefined' ) {
                     AYGPlayerElement.isApiLoaded = true;
 
-                    var tag = document.createElement( 'script' );
+                    const tag = document.createElement( 'script' );
                     tag.src = 'https://www.youtube.com/iframe_api';
-                    var firstScriptTag = document.getElementsByTagName( 'script' )[0];
+                    
+                    const firstScriptTag = document.getElementsByTagName( 'script' )[0];
                     firstScriptTag.parentNode.insertBefore( tag, firstScriptTag );	
                 }		
 
@@ -650,6 +818,25 @@
          * Define private async methods.
          */
         
+        async _loadStyle( url ) {
+			if ( ! AYGPlayerElement.plyrCssText ) {
+				const res = await fetch( url );
+				if ( ! res.ok ) throw new Error( res.status );
+				
+				AYGPlayerElement.plyrCssText = await res.text();
+			}
+
+			if ( 'adoptedStyleSheets' in Document.prototype && 'replaceSync' in CSSStyleSheet.prototype ) {
+				const sheet = new CSSStyleSheet();
+				sheet.replaceSync( AYGPlayerElement.plyrCssText );
+				this.shadowRoot.adoptedStyleSheets = [ sheet ];
+			} else {
+				const style = document.createElement( 'style' );
+				style.textContent = AYGPlayerElement.plyrCssText;
+				this.shadowRoot.appendChild( style );
+			}
+		}
+
         async _setCookie() {
             try {
                 let formData = new FormData();
@@ -711,9 +898,7 @@
         } 
 
         pause() {
-            if ( ! this._playerApi ) return false;
-
-            if ( this._playerApi.pauseVideo ) {
+            if ( this._playerApi && this._playerApi.pauseVideo ) {
                 this._playerApi.pauseVideo();
             }
         } 
@@ -725,6 +910,18 @@
             }
 
             if ( this._playerApi ) {
+                // Update poster image       
+                if ( video.hasOwnProperty( 'poster' ) ) {  
+                    if ( this._plyr ) {
+                        this._plyr.poster = ''; 
+
+                        setTimeout( () => {
+                            this._plyr.poster = video.poster;
+                        }, 100 );
+                    }
+                }
+
+                // Update video ID
                 if ( video.hasOwnProperty( 'id' ) ) {
                     if ( autoplay ) {
                         if ( this._playerApi.loadVideoById ) {
@@ -751,7 +948,7 @@
                     this.src = url.toString();
 
                     if ( this._isPlayerAdded ) { 
-                        this.playerEl.setAttribute( 'src', this.src );
+                        this.iframeEl.setAttribute( 'src', this.src );
                     }
                 }
 
@@ -763,7 +960,7 @@
                         if ( this._isPlayerAdded ) {
                             this.rootEl.style.backgroundImage = 'none';
                         } else {
-                            this.rootEl.style.backgroundImage = `url("${this.poster}")`;
+                            this.rootEl.style.backgroundImage = `url("${video.poster}")`;
                         }                    
                     }
                 }
@@ -781,14 +978,14 @@
         }
 
         stop() {
-            if ( ! this._playerApi ) return false;
-
-            if ( this._playerApi.stopVideo ) {
+            if ( this._playerApi && this._playerApi.stopVideo ) {
                 this._playerApi.stopVideo();
             }
         }
 
     }
+
+    AYGPlayerElement.plyrCssText = null;
 
     /**
      * Description Element.
@@ -802,6 +999,7 @@
             super();
 
             // Set references to the private properties used by the component
+            this._isRendered = false;
             this._showMoreButtonLabel = ayg_config.i18n.show_more;
             this._showLessButtonLabel = ayg_config.i18n.show_less;
         }
@@ -811,6 +1009,9 @@
          * (can be called many times if an element is repeatedly added/removed)
          */
         connectedCallback() {
+            if ( this._isRendered ) return false; 
+            this._isRendered = true;
+
             $( this ).on( 'click', '.ayg-player-description-toggle-btn', ( event ) => this._toggle( event ) );
         }
 
@@ -819,6 +1020,8 @@
          * (can be called many times if an element is repeatedly added/removed)
          */
         disconnectedCallback() {
+            if ( ! this._isRendered ) return false; 
+
             $( this ).off( 'click', '.ayg-player-description-toggle-btn', ( event ) => this._toggle( event ) );
         }
 
@@ -869,6 +1072,7 @@
             this.$pagination = null; 
 
             // Set references to the private properties used by the component
+            this._isRendered = false;
             this._formData = {};
             this._ajaxUrl = ayg_config.ajax_url;
             this._ajaxNonce = ayg_config.ajax_nonce; 
@@ -881,6 +1085,9 @@
          * (can be called many times if an element is repeatedly added/removed)
          */
         connectedCallback() {
+            if ( this._isRendered ) return false; 
+            this._isRendered = true;
+
             this.$el = $( this );
             this.$root = this.$el.closest( '.ayg' );
 
@@ -908,6 +1115,8 @@
          * (can be called many times if an element is repeatedly added/removed)
          */
         disconnectedCallback() {
+            if ( ! this._isRendered ) return false;
+
             this.$searchForm.off( 'submit', ( event ) => this._search( event ) );
             this.$searchInput.off( 'blur', ( event ) => this._search( event ) );
             this.$searchBtn.off( 'click', ( event ) => this._search( event ) );
@@ -1104,6 +1313,7 @@
             this.$previousButton = null;
 
             // Set references to the private properties used by the component
+            this._isRendered = false; 
             this._formData = {};
             this._ajaxUrl = ayg_config.ajax_url;
             this._ajaxNonce = ayg_config.ajax_nonce;
@@ -1117,6 +1327,9 @@
          * (can be called many times if an element is repeatedly added/removed)
          */
         connectedCallback() {
+            if ( this._isRendered ) return false; 
+            this._isRendered = true;
+
             this.$el = $( this );
             this.$videos = this.$el.closest( '.ayg' ).find( '.ayg-videos' );
 
@@ -1135,6 +1348,8 @@
          * (can be called many times if an element is repeatedly added/removed)
          */
         disconnectedCallback() {
+            if ( ! this._isRendered ) return false; 
+            
             this.$el.off( 'click', '.ayg-pagination-next-btn', ( event ) => this._next( event ) );
             this.$el.off( 'click', '.ayg-pagination-prev-btn', ( event ) => this._previous( event ) );
         }
@@ -1241,82 +1456,12 @@
 
     }
 
-    /**
-     * Get player HTML.
-     *
-     * @since 2.5.0
-     */
-    function getAYGPlayerHtml( video, params ) {
-        var siteurl = 'https://www.youtube.com';
-        if ( ayg_config.privacy_enhanced_mode == 1 ) {
-            siteurl = 'https://www.youtube-nocookie.com';
-        }
-
-        video.src = siteurl + '/embed/' + video.id + '?enablejsapi=1&playsinline=1&rel=0';
-
-        if ( ayg_config.hasOwnProperty( 'origin' ) && ayg_config.origin.length > 0 ) {
-            video.src += '&origin=' + ayg_config.origin;
-        }
-
-        var autoplay = params.hasOwnProperty( 'autoplay' ) ? parseInt( params.autoplay ) : 0;
-        if ( autoplay == 1 ) {
-            video.src += '&autoplay=1';
-        }
-
-        var muted = params.hasOwnProperty( 'muted' ) ? parseInt( params.muted ) : 0;
-        if ( muted == 1 ) {
-            video.src += '&mute=1';
-        }
-
-        var controls = params.hasOwnProperty( 'controls' ) ? parseInt( params.controls ) : 1;
-        if ( controls == 0 ) {
-            video.src += '&controls=0';
-        }
-
-        var modestbranding = params.hasOwnProperty( 'modestbranding' ) ? parseInt( params.modestbranding ) : 0;
-        if ( modestbranding == 1 ) {
-            video.src += '&modestbranding=1';
-        }
-
-        var cc_load_policy = params.hasOwnProperty( 'cc_load_policy' ) ? parseInt( params.cc_load_policy ) : 0;
-        if ( cc_load_policy == 1 ) {
-            video.src += '&cc_load_policy=1';
-        }
-
-        var iv_load_policy = params.hasOwnProperty( 'iv_load_policy' ) ? parseInt( params.iv_load_policy ) : 0;
-        if ( iv_load_policy == 0 ) {
-            video.src += '&iv_load_policy=3';
-        }
-
-        if ( params.hasOwnProperty( 'hl' ) && params.hl.length > 0 ) {
-            video.src += '&hl=' + params.hl;
-        }
-
-        if ( params.hasOwnProperty( 'cc_lang_pref' ) && params.cc_lang_pref.length > 0 ) {
-            video.src += '&cc_lang_pref=' + params.cc_lang_pref;
-        }
-
-        // Build player html
-        var html = '<ayg-player class="mfp-prevent-close"';		
-        html += ' title="' + video.title + '"';
-        html += ' src="' + video.src + '"';		
-        html += ' poster="' + video.poster + '"';
-        html += ' ratio="' + video.ratio + '"';
-        html += '>';
-        html += '</ayg-player>';
-
-        return html;
-    }
-
-    window.getAYGPlayerHtml = getAYGPlayerHtml;
-
 	/**
 	 * Called when the page has loaded.
 	 *
 	 * @since 1.0.0
 	 */
 	$(function() {
-
         // Register custom elements
         if ( ! customElements.get( 'ayg-player' ) ) {
             customElements.define( 'ayg-player', AYGPlayerElement );
@@ -1356,6 +1501,78 @@
             }
 		}
 
+        // Init assets
+        const plugin_url     = ayg_config.plugin_url;
+		const plugin_version = ayg_config.plugin_version;
+
+		const assets = [
+			{ 
+				selector: 'ayg-theme-classic', 
+				script: {
+					id: 'automatic-youtube-gallery-theme-classic-js',
+					src: plugin_url + 'public/assets/js/theme-classic.min.js?ver=' + plugin_version
+				}
+			},
+            { 
+				selector: 'ayg-theme-inline', 
+				script: {
+					id: 'automatic-youtube-gallery-theme-inline-js',
+					src: plugin_url + 'premium/public/assets/js/theme-inline.min.js?ver=' + plugin_version
+				}
+			},
+            { 
+				selector: 'ayg-theme-playlist', 
+				script: {
+					id: 'automatic-youtube-gallery-theme-playlist-js',
+					src: plugin_url + 'premium/public/assets/js/theme-playlist.min.js?ver=' + plugin_version
+				}
+			},
+			{ 
+				selector: 'ayg-theme-popup, .ayg-theme-single-popup', 
+				script: {
+					id: 'automatic-youtube-gallery-theme-popup-js',
+					src: plugin_url + 'premium/public/assets/js/theme-popup.min.js?ver=' + plugin_version
+				}
+			},
+			{ 
+				selector: 'ayg-theme-slider, ayg-theme-slider-popup, ayg-theme-slider-inline', 
+				script: {
+					id: 'automatic-youtube-gallery-theme-slider-js',
+					src: plugin_url + 'premium/public/assets/js/theme-slider.min.js?ver=' + plugin_version
+				}
+			}
+		];
+
+		// Scan DOM and load required assets
+		const loadAssets = ( root = document ) => {
+			if ( ! root || ( root.nodeType !== 1 && root !== document ) ) {
+				return;
+			}
+
+			for ( const asset of assets ) {
+				if ( root.matches?.( asset.selector ) || root.querySelector( asset.selector ) ) {
+					if ( asset.style ) window.AYGLoadStyle( asset.style );
+					if ( asset.script ) window.AYGLoadScript( asset.script );
+				}
+			}
+		};
+
+		// Initial scan (page load)
+		loadAssets( document );
+
+		// Observe dynamically added elements (Elementor, DIVI, AJAX)
+		const observer = new MutationObserver(( mutations ) => {
+			for ( const mutation of mutations ) {
+				for ( const node of mutation.addedNodes ) {
+					loadAssets( node );
+				}
+			}
+		});
+
+		observer.observe( document.body, {
+			childList: true,
+			subtree: true
+		});
 	});
 
 })( jQuery );

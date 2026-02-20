@@ -24,7 +24,7 @@ $featured = $videos[0]; // Featured Video
 ?>
 <div class="automatic-youtube-gallery ayg">
     <?php the_ayg_search_form( $attributes ); ?>
-    <ayg-theme-classic id="ayg-<?php echo esc_attr( $attributes['uid'] ); ?>" class="ayg-theme ayg-theme-classic" data-params='<?php echo wp_json_encode( $params ); ?>'>
+    <ayg-theme-classic id="ayg-<?php echo esc_attr( $attributes['uid'] ); ?>" class="ayg-theme ayg-theme-classic" data-params="<?php echo esc_attr( wp_json_encode( $params ) ); ?>">
         <div class="ayg-player">
             <div class="ayg-player-container" style="max-width: <?php echo $player_width; ?>;">
                 <?php

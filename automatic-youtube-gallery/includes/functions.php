@@ -22,8 +22,8 @@ if ( ! defined( 'WPINC' ) ) {
  * @return mixed
  */
 function ayg_build_gallery( $args ) {
-	$general_settings = get_option( 'ayg_general_settings' );
-	$strings_settings = get_option( 'ayg_strings_settings' );
+	$general_settings = ayg_get_option( 'ayg_general_settings' );
+	$strings_settings = ayg_get_option( 'ayg_strings_settings' );
 
 	global $post;
 
@@ -111,7 +111,7 @@ function ayg_build_gallery( $args ) {
 	if ( ! isset( $response->error ) ) {
 		// Store Gallery ID
 		if ( $attributes['post_id'] > 0 && isset( $attributes['deeplinking'] ) && 1 == $attributes['deeplinking'] ) {
-			$pages = get_option( 'ayg_gallery_page_ids', array() );
+			$pages   = ayg_get_option( 'ayg_gallery_page_ids' );
 			$page_id = $attributes['post_id'];
 
 			if ( ! in_array( $page_id, $pages ) ) {
@@ -434,7 +434,7 @@ function ayg_delete_cache() {
 	delete_option( 'ayg_gallery_page_ids' );
 	
 	// Get the current list of transients
-	$transient_keys = get_option( 'ayg_transient_keys', array() );
+	$transient_keys = ayg_get_option( 'ayg_transient_keys' );
 
 	// For each key, delete that transient
 	foreach ( $transient_keys as $key ) {
@@ -467,9 +467,12 @@ function ayg_get_current_url() {
 function ayg_get_default_settings() {
 	$defaults = array(
 		'ayg_general_settings' => array(
-			'api_key'          => '',
-			'lazyload'         => 0,
-			'development_mode' => 0
+			'force_load_assets' => array(
+				'css' => 'css'
+			),
+			'api_key'           => '',
+			'lazyload'          => 0,
+			'development_mode'  => 0
 		),
 		'ayg_strings_settings' => array(
 			'more_button_label'     => __( 'Load More', 'automatic-youtube-gallery' ),
@@ -681,7 +684,7 @@ function ayg_get_editor_fields() {
  * @return array $fields Array of fields.
  */
 function ayg_get_gallery_settings_fields() {
-	$gallery_settings = get_option( 'ayg_gallery_settings' );
+	$gallery_settings = ayg_get_option( 'ayg_gallery_settings' );
 
 	$fields = array(
 		array(
@@ -719,10 +722,11 @@ function ayg_get_gallery_settings_fields() {
 			'name'              => 'thumb_ratio',
 			'label'             => __( 'Image Height (Ratio)', 'automatic-youtube-gallery' ),
 			'description'       => __( 'Select the ratio value used to calculate the image height in the gallery thumbnails.', 'automatic-youtube-gallery' ),			
-			'type'              => 'radio',
+			'type'              => 'select',
 			'options'           => array(
-				'56.25' => '16:9',
-				'75'    => '4:3'				
+				'56.25'  => __( 'Standard (16:9) — Default', 'automatic-youtube-gallery' ),
+				'177.78' => __( 'Shorts / Vertical (9:16)', 'automatic-youtube-gallery' ),
+				'75'     => __( 'Classic (4:3)', 'automatic-youtube-gallery' )				
 			),
 			'value'             => $gallery_settings['thumb_ratio'],
 			'sanitize_callback' => 'floatval'
@@ -789,6 +793,28 @@ function ayg_get_gallery_settings_fields() {
 }
 
 /**
+ * Retrieve a plugin option with fallback to default settings.
+ *
+ * @since  2.7.0
+ * @param  string $option The option name to retrieve.
+ * @return mixed
+ */
+function ayg_get_option( $option ) {
+    $defaults = ayg_get_default_settings();
+    $default  = isset( $defaults[ $option ] ) ? $defaults[ $option ] : array();
+
+    $saved = get_option( $option, null );
+
+    // Option does not exist OR corrupted
+    if ( null === $saved || ! is_array( $saved ) ) {
+        return $default;
+    }
+
+    // Merge saved values with defaults
+    return wp_parse_args( $saved, $default );
+}
+
+/**
  * Get video description to show on top of the player.
  *
  * @since  1.0.0
@@ -822,7 +848,7 @@ function ayg_get_player_description( $video, $attributes = array(), $words_count
  * @return array $fields Array of fields.
  */
 function ayg_get_player_settings_fields() {
-	$player_settings = get_option( 'ayg_player_settings' );
+	$player_settings = ayg_get_option( 'ayg_player_settings' );
 
 	$fields = array(
 		array(
@@ -837,10 +863,11 @@ function ayg_get_player_settings_fields() {
 			'name'              => 'player_ratio',
 			'label'             => __( 'Player Height (Ratio)', 'automatic-youtube-gallery' ),	
 			'description'       => __( 'Select the ratio value used to calculate the player height.', 'automatic-youtube-gallery' ),		
-			'type'              => 'radio',
+			'type'              => 'select',
 			'options'           => array(
-				'56.25' => '16:9',
-				'75'    => '4:3'				
+				'56.25'  => __( 'Standard (16:9) — Default', 'automatic-youtube-gallery' ),
+				'177.78' => __( 'Shorts / Vertical (9:16)', 'automatic-youtube-gallery' ),
+				'75'     => __( 'Classic (4:3)', 'automatic-youtube-gallery' )
 			),
 			'value'             => $player_settings['player_ratio'],
 			'sanitize_callback' => 'floatval'
@@ -1000,7 +1027,7 @@ function ayg_get_uniqid() {
  * @return string YouTube embed domain.
  */
 function ayg_get_youtube_domain() {
-	$player_settings = get_option( 'ayg_player_settings' );
+	$player_settings = ayg_get_option( 'ayg_player_settings' );
 
 	$domain = 'https://www.youtube.com';
 	if ( isset( $player_settings['privacy_enhanced_mode'] ) && ! empty( $player_settings['privacy_enhanced_mode'] ) ) {
@@ -1019,7 +1046,7 @@ function ayg_get_youtube_domain() {
  * @return string             Player embed URL.
  */
 function ayg_get_youtube_embed_url( $video_id, $attributes = array() ) {
-	$player_settings = get_option( 'ayg_player_settings' );
+	$player_settings = ayg_get_option( 'ayg_player_settings' );
 
 	$player_website = 'https://www.youtube.com';
 	if ( isset( $player_settings['privacy_enhanced_mode'] ) && ! empty( $player_settings['privacy_enhanced_mode'] ) ) {
@@ -1140,6 +1167,17 @@ function ayg_is_ios() {
     }
 
     return false;
+}
+
+/**
+ * Sanitize the array inputs.
+ *
+ * @since  2.7.0
+ * @param  array $value Input array.
+ * @return array        Sanitized array.
+ */
+function ayg_sanitize_array( $value ) {
+	return ! empty( $value ) ? array_map( 'sanitize_text_field', $value ) : array();
 }
 
 /**

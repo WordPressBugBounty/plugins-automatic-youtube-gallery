@@ -6,7 +6,7 @@ Tags: youtube gallery, youtube playlist, youtube channel, youtube embed, youtube
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 5.6.20
-Stable tag: 2.6.5
+Stable tag: 2.7.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -120,6 +120,18 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 10. Widget
 
 == Changelog ==
+
+= 2.7.1 =
+
+* New: Added options to force-load the plugin's CSS (recommended) and JavaScript (advanced) across all front-end pages. This helps resolve layout or functionality issues caused by themes, page builders, or optimization plugins.
+* New: Added a "Shorts / Vertical (9:16)" option to the "Image Height (Ratio)" setting.
+* New: Added a "Shorts / Vertical (9:16)" option to the "Player Height (Ratio)" setting.
+* Tweak: Improved popup player behavior — the player now always fits within the viewport. Previously, it could extend beyond the visible area.
+* Tweak: Enhanced slider dots behavior by limiting the maximum number of dots to 5 and automatically enabling dots during navigation when using the slider template.
+* Tweak: Introduced a new wrapper function, ayg_get_option(), for the WordPress get_option() function to prevent issues when plugin settings are missing.
+* Fix: Resolved an issue where deeplinking did not work correctly on the site home/front page.
+* Fix: Registered custom query variables to prevent conflicts with SEO and optimization plugins that may strip unrecognized query vars.
+* Fix: Various minor bug fixes and performance enhancements.
 
 = 2.6.5 =
 
@@ -311,6 +323,6 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 
 == Upgrade Notice ==
 
-= 2.6.5 =
+= 2.7.1 =
 
 Introduces several new features, bug fixes & enhancements. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)

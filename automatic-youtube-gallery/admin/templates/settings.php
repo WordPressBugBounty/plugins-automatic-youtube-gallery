@@ -9,8 +9,8 @@
  * @package Automatic_YouTube_Gallery
  */
 
-$gallery_settings = get_option( 'ayg_gallery_settings' );
-$player_settings  = get_option( 'ayg_player_settings' );
+$gallery_settings = ayg_get_option( 'ayg_gallery_settings' );
+$player_settings  = ayg_get_option( 'ayg_player_settings' );
 
 $active_tab     = isset( $_GET['tab'] ) && array_key_exists( $_GET['tab'], $this->tabs ) ? sanitize_text_field( $_GET['tab'] ) : 'general';
 $active_section = isset( $_GET['section'] ) ? sanitize_text_field( $_GET['section'] ) : '';

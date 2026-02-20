@@ -32,7 +32,7 @@ $params = array(
 
 $params = apply_filters( 'ayg_search_form_args', $params, $attributes );
 ?>
-<ayg-search-form data-params='<?php echo wp_json_encode( $params ); ?>'>
+<ayg-search-form data-params="<?php echo esc_attr( wp_json_encode( $params ) ); ?>">
     <form class="ayg-search-form">
         <input type="text" class="ayg-search-input" placeholder="<?php esc_attr_e( 'Search Videos', 'automatic-youtube-gallery' ); ?>" />
         <button type="button" class="ayg-search-btn"> 

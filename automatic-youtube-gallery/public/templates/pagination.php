@@ -44,7 +44,7 @@ if ( $params['total_pages'] <= 1 ) {
     return false;
 }
 ?>
-<ayg-pagination class="ayg-pagination" data-params='<?php echo wp_json_encode( $params ); ?>'>
+<ayg-pagination class="ayg-pagination" data-params="<?php echo esc_attr( wp_json_encode( $params ) ); ?>">
     <?php if ( 'pager' == $attributes['pagination_type'] ) : // pager ?>
         <div class="ayg-pagination-prev">
             <button type="button" class="ayg-btn ayg-pagination-prev-btn" data-type="previous" style="display: none;"><?php echo esc_html( $previous_button_label ); ?></button>

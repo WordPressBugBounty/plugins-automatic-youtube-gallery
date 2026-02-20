@@ -71,7 +71,7 @@ class AYG_YouTube_API {
      */
     public function query( $params = array() ) {
 		// Get YouTube API Key
-		$general_settings = get_option( 'ayg_general_settings' );
+		$general_settings = ayg_get_option( 'ayg_general_settings' );
 
 		if ( empty( $general_settings['api_key'] ) ) {
 			return $this->get_error( __( 'YouTube API key not found.', 'automatic-youtube-gallery' ) . ' ' . sprintf( __( 'Kindly follow this URL <a href="%s" target="_blank" rel="noopener noreferrer">this guide</a> to get your own API key.', 'automatic-youtube-gallery' ), 'https://plugins360.com/automatic-youtube-gallery/how-to-get-youtube-api-key/' ) );
@@ -283,10 +283,7 @@ class AYG_YouTube_API {
 			$video_id = $this->parse_youtube_id_from_url( $params['src'], 'video' );
 
 			// Request from cache
-			$channel_ids = get_option( 'ayg_channel_ids', array() );
-			if ( ! is_array( $channel_ids ) ) {
-				$channel_ids = (array) $channel_ids;
-			}
+			$channel_ids = ayg_get_option( 'ayg_channel_ids' );
 
 			if ( isset( $channel_ids[ $video_id ] ) && ! empty( $channel_ids[ $video_id ] ) ) {
 				return $channel_ids[ $video_id ];
@@ -337,10 +334,7 @@ class AYG_YouTube_API {
      */
     private function get_playlist_id( $params = array() ) {
 		// Request from cache
-		$playlist_ids = get_option( 'ayg_playlist_ids', array() );
-		if ( ! is_array( $playlist_ids ) ) {
-			$playlist_ids = (array) $playlist_ids;
-		}
+		$playlist_ids = ayg_get_option( 'ayg_playlist_ids' );
 
 		$key = '';
 
@@ -522,7 +516,7 @@ class AYG_YouTube_API {
 
 		$videos = $this->parse_videos( $api_response );
 		if ( isset( $videos->error ) ) {
-			$livestream_settings = get_option( 'ayg_livestream_settings' );
+			$livestream_settings = ayg_get_option( 'ayg_livestream_settings' );
 			return $this->get_error( '<div class="ayg-livestream-fallback-message">' . $livestream_settings['fallback_message'] . '</div>' );
 		}
 
@@ -834,10 +828,7 @@ class AYG_YouTube_API {
 			set_transient( $cache_key, $data, $cache_duration );
 
 			// Get the current list of transients
-			$cache_keys = get_option( 'ayg_transient_keys', array() );
-			if ( ! is_array( $cache_keys ) ) {
-				$cache_keys = (array) $cache_keys;
-			}
+			$cache_keys = ayg_get_option( 'ayg_transient_keys' );
 
 			// Append our new one
 			if ( ! in_array( $cache_key, $cache_keys ) ) {
