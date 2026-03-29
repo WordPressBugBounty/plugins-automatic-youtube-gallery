@@ -64,7 +64,8 @@ class AYG_Public_Cron {
 			}
 		}
 
-		update_option( 'ayg_transient_keys', $filtered_keys );
+		// Save it to the DB (autoload=no: this list can grow large and is not needed on every page load)
+		update_option( 'ayg_transient_keys', $filtered_keys, false );
 	}
 
 }

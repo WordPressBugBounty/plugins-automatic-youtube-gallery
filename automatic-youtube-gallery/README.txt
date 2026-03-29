@@ -3,10 +3,10 @@ Plugin URI: https://plugins360.com/automatic-youtube-gallery/
 Contributors: plugins360, wpvideogallery, freemius
 Donate link: https://plugins360.com
 Tags: youtube gallery, youtube playlist, youtube channel, youtube embed, youtube live
-Requires at least: 6.0
-Tested up to: 6.9
+Requires at least: 6.3
+Tested up to: 7.0
 Requires PHP: 5.6.20
-Stable tag: 2.7.1
+Stable tag: 2.7.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -120,6 +120,19 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 10. Widget
 
 == Changelog ==
+
+= 2.7.2 =
+
+* New: Added "Slider Autoplay" and "Autoplay Speed" settings for the Slider + Popup theme.
+* New: Introduced `ayg_theme_classic_params`, `ayg_theme_inline_params`, `ayg_theme_playlist_params`, `ayg_theme_slider_params`, `ayg_theme_slider_inline_params`, and `ayg_theme_slider_popup_params` filter hooks for customizing player parameters per theme.
+* New: Introduced `ayg_theme_slider_slick_options` filter hook for customizing Slick carousel options across all slider themes.
+* New: Introduced `ayg_search_form_params` filter hook for customizing search form parameters. The previous `ayg_search_form_args` hook is deprecated but retained for backward compatibility.
+* New: Introduced `ayg_autoflush_rewrite_rules_in_admin` filter hook to optionally enable rewrite rule checks in admin contexts (runs on public pages only by default).
+* Tweak: Updated Freemius SDK to version 2.13.1.
+* Tweak: Improved performance of video storage by replacing per-video database queries with a single bulk INSERT per API response, reducing database load on cache-miss pagination requests.
+* Tweak: Disabled autoloading for the `ayg_transient_keys`, `ayg_channel_ids`, and `ayg_playlist_ids` options to prevent lookup caches from being loaded on every page request site-wide.
+* Tweak: Switched rewrite rule flush from hard (`.htaccess` rewrite) to soft (database only), avoiding unnecessary file I/O on the front end.
+* Fix: WordPress 7.0 compatibility issues.
 
 = 2.7.1 =
 
@@ -323,6 +336,6 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 
 == Upgrade Notice ==
 
-= 2.7.1 =
+= 2.7.2 =
 
-Introduces several new features, bug fixes & enhancements. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)
+WordPress 7 Compatibility Release. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)

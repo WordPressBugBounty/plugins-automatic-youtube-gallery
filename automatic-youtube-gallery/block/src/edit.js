@@ -81,8 +81,8 @@ export default function Edit( { attributes, setAttributes, className, clientId }
 						min={ field.min }
 						max={ field.max }
 						onChange={ onChange( field.name ) }
-						__nextHasNoMarginBottom
-            			__next40pxDefaultSize
+						__nextHasNoMarginBottom={ true }
+            			__next40pxDefaultSize={ true }
 					/>
 				</PanelRow>
 			case 'textarea':
@@ -93,7 +93,7 @@ export default function Edit( { attributes, setAttributes, className, clientId }
 						placeholder={ placeholder }
 						value={ attributes[ field.name ] }
 						onChange={ onChange( field.name ) }
-						__nextHasNoMarginBottom
+						__nextHasNoMarginBottom={ true }
 					/>
 				</PanelRow>
 			case 'select':
@@ -114,8 +114,8 @@ export default function Edit( { attributes, setAttributes, className, clientId }
 						options={ options }
 						value={ attributes[ field.name ] }
 						onChange={ onChange( field.name ) }
-						__nextHasNoMarginBottom
-            			__next40pxDefaultSize
+						__nextHasNoMarginBottom={ true }
+            			__next40pxDefaultSize={ true }
 					/>
 				</PanelRow>
 			case 'checkbox':
@@ -125,7 +125,7 @@ export default function Edit( { attributes, setAttributes, className, clientId }
 						help={ description }
 						checked={ attributes[ field.name ] }
 						onChange={ toggleAttribute( field.name ) }
-						__nextHasNoMarginBottom
+						__nextHasNoMarginBottom={ true }
 					/>
 				</PanelRow>
 			case 'color':
@@ -150,8 +150,8 @@ export default function Edit( { attributes, setAttributes, className, clientId }
 						placeholder={ placeholder }
 						value={ attributes[ field.name ] }
 						onChange={ onChange( field.name ) }
-						__nextHasNoMarginBottom
-            			__next40pxDefaultSize
+						__nextHasNoMarginBottom={ true }
+            			__next40pxDefaultSize={ true }
 					/>
 				</PanelRow>
 		}		

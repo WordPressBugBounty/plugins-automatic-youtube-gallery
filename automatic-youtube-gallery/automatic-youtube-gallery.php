@@ -11,7 +11,7 @@
  * Plugin Name:       Automatic YouTube Gallery
  * Plugin URI:        https://plugins360.com/automatic-youtube-gallery/
  * Description:       Create responsive, modern & dynamic video galleries by simply adding a YouTube USERNAME, CHANNEL, PLAYLIST, SEARCH KEYWORDS, or a custom list of YouTube URLs.
- * Version:           2.7.1
+ * Version:           2.7.2
  * Author:            Team Plugins360
  * Author URI:        https://plugins360.com
  * License:           GPL-2.0+
@@ -30,7 +30,7 @@ if ( function_exists( 'ayg_fs' ) ) {
 }
 // Current version of the plugin
 if ( !defined( 'AYG_VERSION' ) ) {
-    define( 'AYG_VERSION', '2.7.1' );
+    define( 'AYG_VERSION', '2.7.2' );
 }
 // Unique identifier of the plugin
 if ( !defined( 'AYG_SLUG' ) ) {
@@ -60,23 +60,24 @@ if ( !function_exists( 'ayg_fs' ) ) {
             // Include Freemius SDK
             require_once dirname( __FILE__ ) . '/vendor/freemius/start.php';
             $ayg_fs = fs_dynamic_init( array(
-                'id'             => '2922',
-                'slug'           => 'automatic-youtube-gallery',
-                'type'           => 'plugin',
-                'public_key'     => 'pk_7734619fa98d4e2b76a390a890739',
-                'is_premium'     => false,
-                'premium_suffix' => 'Premium',
-                'has_addons'     => false,
-                'has_paid_plans' => true,
-                'trial'          => array(
+                'id'               => '2922',
+                'slug'             => 'automatic-youtube-gallery',
+                'type'             => 'plugin',
+                'public_key'       => 'pk_7734619fa98d4e2b76a390a890739',
+                'is_premium'       => false,
+                'premium_suffix'   => 'Premium',
+                'has_addons'       => false,
+                'has_paid_plans'   => true,
+                'trial'            => array(
                     'days'               => 7,
                     'is_require_payment' => false,
                 ),
-                'menu'           => array(
+                'menu'             => array(
                     'slug'       => 'automatic-youtube-gallery',
                     'first-path' => 'admin.php?page=automatic-youtube-gallery',
                 ),
-                'is_live'        => true,
+                'is_live'          => true,
+                'is_org_compliant' => true,
             ) );
         }
         return $ayg_fs;

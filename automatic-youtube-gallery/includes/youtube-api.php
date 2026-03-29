@@ -317,7 +317,7 @@ class AYG_YouTube_API {
 			if ( $id = $videos[0]->channel_id ) {
 				// Store in cache
 				$channel_ids[ $video_id ] = $id;
-				update_option( 'ayg_channel_ids', $channel_ids );
+				update_option( 'ayg_channel_ids', $channel_ids, false );
 			}
 		}
 
@@ -382,7 +382,7 @@ class AYG_YouTube_API {
 		if ( $id = $items[0]->contentDetails->relatedPlaylists->uploads ) {
 			// Store in cache
 			$playlist_ids[ $key ] = $id;
-			update_option( 'ayg_playlist_ids', $playlist_ids );
+			update_option( 'ayg_playlist_ids', $playlist_ids, false );
 
 			// Return
 			return $id;
@@ -657,7 +657,7 @@ class AYG_YouTube_API {
 
 		// Get Total Videos Count
 		$total_query = $wpdb->prepare(
-			"SELECT COUNT(*) 
+			"SELECT COUNT(*)
 			FROM $videos_table AS v
 			INNER JOIN $galleries_table AS g ON v.id = g.video_id
 			WHERE g.gallery_id = %s
@@ -683,7 +683,7 @@ class AYG_YouTube_API {
 		$offset = max( 0, ( $current_page - 1 ) * $limit );
 
 		$query = $wpdb->prepare(
-			"SELECT v.* 
+			"SELECT v.*
 			FROM $videos_table AS v
 			INNER JOIN $galleries_table AS g ON v.id = g.video_id
 			WHERE g.gallery_id = %s
@@ -835,8 +835,8 @@ class AYG_YouTube_API {
 				$cache_keys[] = $cache_key;
 			}
 
-			// Save it to the DB
-			update_option( 'ayg_transient_keys', $cache_keys );
+			// Save it to the DB (autoload=no: this list can grow large and is not needed on every page load)
+			update_option( 'ayg_transient_keys', $cache_keys, false );
 		}		
 
 		// Store videos in our custom database table "{$wpdb->prefix}ayg_videos" 

@@ -21,6 +21,8 @@ $params = array(
 );
 
 $featured = $videos[0]; // Featured Video
+
+$params = apply_filters( 'ayg_theme_classic_params', $params, $attributes );
 ?>
 <div class="automatic-youtube-gallery ayg">
     <?php the_ayg_search_form( $attributes ); ?>

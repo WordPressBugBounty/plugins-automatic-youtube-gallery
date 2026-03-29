@@ -30,7 +30,8 @@ $params = array(
     'player_description'   => ! empty( $attributes['player_description'] ) ? (int) $attributes['player_description'] : 0
 );
 
-$params = apply_filters( 'ayg_search_form_args', $params, $attributes );
+$params = apply_filters( 'ayg_search_form_params', $params, $attributes ); 
+$params = apply_filters( 'ayg_search_form_args', $params, $attributes ); // Deprecated for consistency in version 2.7.2
 ?>
 <ayg-search-form data-params="<?php echo esc_attr( wp_json_encode( $params ) ); ?>">
     <form class="ayg-search-form">

@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Automatic YouTube Gallery\n"
-"POT-Creation-Date: 2026-02-18 17:30+0530\n"
-"PO-Revision-Date: 2026-02-18 17:31+0530\n"
+"POT-Creation-Date: 2026-03-28 22:43+0530\n"
+"PO-Revision-Date: 2026-03-28 22:43+0530\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en_US\n"
@@ -10,7 +10,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.8\n"
+"X-Generator: Poedit 3.9\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: "
@@ -294,23 +294,23 @@ msgstr ""
 msgid "Proceed"
 msgstr ""
 
-#: admin/templates/builder.php:89
+#: admin/templates/builder.php:95
 msgid "Generate Shortcode"
 msgstr ""
 
-#: admin/templates/builder.php:99
+#: admin/templates/builder.php:105
 msgid ""
 "\"Automatic YouTube Gallery\" provides several methods to build your "
 "gallery. Choose one of the following methods best suited for you,"
 msgstr ""
 
-#: admin/templates/builder.php:100
+#: admin/templates/builder.php:106
 msgid ""
 "Use the shortcode builder in this page to build your gallery shortcode, then "
 "add it in your POST/PAGE."
 msgstr ""
 
-#: admin/templates/builder.php:101
+#: admin/templates/builder.php:107
 #, php-format
 msgid ""
 "Use our \"Automatic YouTube Gallery\" <a href=\"%s\" target=\"_blank\" "
@@ -318,13 +318,13 @@ msgid ""
 "directly in your POST/PAGE."
 msgstr ""
 
-#: admin/templates/builder.php:102
+#: admin/templates/builder.php:108
 msgid ""
 "Use our \"Automatic YouTube Gallery\" widget to add the gallery in your "
 "website sidebars."
 msgstr ""
 
-#: admin/templates/builder.php:110
+#: admin/templates/builder.php:116
 msgid ""
 "Congrats! copy the shortcode below and paste it in your POST/PAGE where you "
 "need the gallery,"
@@ -409,7 +409,7 @@ msgstr ""
 msgid "Source Type"
 msgstr ""
 
-#: includes/functions.php:547 premium/admin/admin.php:226
+#: includes/functions.php:547 premium/admin/admin.php:228
 msgid "Playlist"
 msgstr ""
 
@@ -828,8 +828,8 @@ msgid "Invalid YouTube Channel ID."
 msgstr ""
 
 #: includes/youtube-api.php:124 includes/youtube-api.php:146
-#: includes/youtube-api.php:677 includes/youtube-api.php:705
-#: includes/youtube-api.php:868 includes/youtube-api.php:932
+#: includes/youtube-api.php:671 includes/youtube-api.php:699
+#: includes/youtube-api.php:859 includes/youtube-api.php:923
 msgid "No videos found matching your query."
 msgstr ""
 
@@ -849,23 +849,23 @@ msgstr ""
 msgid "YouTube Video ID (or) URL is required."
 msgstr ""
 
-#: includes/youtube-api.php:805
+#: includes/youtube-api.php:799
 msgid "Empty or invalid API response"
 msgstr ""
 
-#: premium/admin/admin.php:117
+#: premium/admin/admin.php:119
 msgid "SEO"
 msgstr ""
 
-#: premium/admin/admin.php:133
+#: premium/admin/admin.php:135
 msgid "SEO Settings"
 msgstr ""
 
-#: premium/admin/admin.php:134
+#: premium/admin/admin.php:136
 msgid "Important"
 msgstr ""
 
-#: premium/admin/admin.php:134
+#: premium/admin/admin.php:136
 msgid ""
 "The deeplinking feature updates your website's rewrite rules. A new rule is "
 "added for each gallery that has this option enabled. When your website has "
@@ -875,222 +875,238 @@ msgid ""
 "parameters, block, or widget settings."
 msgstr ""
 
-#: premium/admin/admin.php:153 premium/admin/admin.php:376
+#: premium/admin/admin.php:155 premium/admin/admin.php:397
 msgid "Deeplinking"
 msgstr ""
 
-#: premium/admin/admin.php:154 premium/admin/admin.php:377
+#: premium/admin/admin.php:156 premium/admin/admin.php:398
 msgid ""
 "Add a unique URL for each video in the gallery. When this unique URL is "
 "visited, the gallery will automatically open on that video."
 msgstr ""
 
-#: premium/admin/admin.php:160
+#: premium/admin/admin.php:162
 msgid "Deeplinking Prefix"
 msgstr ""
 
-#: premium/admin/admin.php:161
+#: premium/admin/admin.php:163
 msgid "When building the deep link, this prefix is used in the URL."
 msgstr ""
 
-#: premium/admin/admin.php:168
+#: premium/admin/admin.php:170
 msgid "Include Title in URL"
 msgstr ""
 
-#: premium/admin/admin.php:169
+#: premium/admin/admin.php:171
 msgid "Check this option to include the title of the video in the URL."
 msgstr ""
 
-#: premium/admin/admin.php:175
+#: premium/admin/admin.php:177
 msgid "Open Graph Tags"
 msgstr ""
 
-#: premium/admin/admin.php:176
+#: premium/admin/admin.php:178
 msgid ""
 "Check this option to enable Facebook Open Graph meta tags and Twitter cards "
 "on the deep-linked single video pages."
 msgstr ""
 
-#: premium/admin/admin.php:182
+#: premium/admin/admin.php:184
 msgid "Twitter Username"
 msgstr ""
 
-#: premium/admin/admin.php:183
+#: premium/admin/admin.php:185
 msgid ""
 "The Twitter @username the player card should be attributed to. Required for "
 "sharing videos on Twitter."
 msgstr ""
 
-#: premium/admin/admin.php:190
+#: premium/admin/admin.php:192
 msgid "Schema Markup"
 msgstr ""
 
-#: premium/admin/admin.php:191
+#: premium/admin/admin.php:193
 msgid ""
 "Check this option to enable Schema.org (JSON-LD) markup for single video "
 "displays. Recommended only if the video player is visible on page load."
 msgstr ""
 
-#: premium/admin/admin.php:221
+#: premium/admin/admin.php:223
 msgid "Popup"
 msgstr ""
 
-#: premium/admin/admin.php:222
+#: premium/admin/admin.php:224
 msgid "Inline"
 msgstr ""
 
-#: premium/admin/admin.php:223
+#: premium/admin/admin.php:225
 msgid "Slider"
 msgstr ""
 
-#: premium/admin/admin.php:224
+#: premium/admin/admin.php:226
 msgid "Slider + Popup"
 msgstr ""
 
-#: premium/admin/admin.php:225
+#: premium/admin/admin.php:227
 msgid "Slider + Inline"
 msgstr ""
 
-#: premium/admin/admin.php:236
+#: premium/admin/admin.php:238
 msgid "Arrows"
 msgstr ""
 
-#: premium/admin/admin.php:237
+#: premium/admin/admin.php:239
 msgid "Check this option to enable Prev/Next Arrows."
 msgstr ""
 
-#: premium/admin/admin.php:244
+#: premium/admin/admin.php:246
 msgid "Arrow Size"
 msgstr ""
 
-#: premium/admin/admin.php:245
+#: premium/admin/admin.php:247
 msgid "Enter the arrow size in pixels."
 msgstr ""
 
-#: premium/admin/admin.php:254
+#: premium/admin/admin.php:256
 msgid "Arrow BG Color"
 msgstr ""
 
-#: premium/admin/admin.php:262
+#: premium/admin/admin.php:264
 msgid "Arrow Icon Color"
 msgstr ""
 
-#: premium/admin/admin.php:270
+#: premium/admin/admin.php:272
 msgid "Arrow Radius"
 msgstr ""
 
-#: premium/admin/admin.php:271
+#: premium/admin/admin.php:273
 msgid "Enter the amount of arrow radius in pixels."
 msgstr ""
 
-#: premium/admin/admin.php:280
+#: premium/admin/admin.php:282
 msgid "Arrow Top Offset"
 msgstr ""
 
-#: premium/admin/admin.php:281
+#: premium/admin/admin.php:283
 msgid "Enter the arrow position from the slider's top edge in percentage (%)."
 msgstr ""
 
-#: premium/admin/admin.php:290
+#: premium/admin/admin.php:292
 msgid "Arrow Left Offset"
 msgstr ""
 
-#: premium/admin/admin.php:291
+#: premium/admin/admin.php:293
 msgid "Enter the left arrow position from the slider's left edge in pixels."
 msgstr ""
 
-#: premium/admin/admin.php:300
+#: premium/admin/admin.php:302
 msgid "Arrow Right Offset"
 msgstr ""
 
-#: premium/admin/admin.php:301
+#: premium/admin/admin.php:303
 msgid "Enter the right arrow position from the slider's right edge in pixels."
 msgstr ""
 
-#: premium/admin/admin.php:310
+#: premium/admin/admin.php:312
 msgid "Dots"
 msgstr ""
 
-#: premium/admin/admin.php:311
+#: premium/admin/admin.php:313
 msgid "Check this option to show dot indicators."
 msgstr ""
 
-#: premium/admin/admin.php:318
+#: premium/admin/admin.php:320
 msgid "Dot Size"
 msgstr ""
 
-#: premium/admin/admin.php:319
+#: premium/admin/admin.php:321
 msgid "Enter the dot size in pixels."
 msgstr ""
 
-#: premium/admin/admin.php:328
+#: premium/admin/admin.php:330
 msgid "Dot Color"
 msgstr ""
 
-#: premium/admin/admin.php:336
+#: premium/admin/admin.php:338
+msgid "Slider Autoplay"
+msgstr ""
+
+#: premium/admin/admin.php:339
+msgid "Check this option to auto-rotate the slider."
+msgstr ""
+
+#: premium/admin/admin.php:346
+msgid "Autoplay Speed (in milliseconds)"
+msgstr ""
+
+#: premium/admin/admin.php:347
+msgid "Enter the time each slide is displayed before advancing to the next."
+msgstr ""
+
+#: premium/admin/admin.php:357
 msgid "Playlist Position"
 msgstr ""
 
-#: premium/admin/admin.php:340
+#: premium/admin/admin.php:361
 msgid "Right"
 msgstr ""
 
-#: premium/admin/admin.php:341
+#: premium/admin/admin.php:362
 msgid "Bottom"
 msgstr ""
 
-#: premium/admin/admin.php:348
+#: premium/admin/admin.php:369
 msgid "Playlist Color"
 msgstr ""
 
-#: premium/admin/admin.php:352
+#: premium/admin/admin.php:373
 msgid "Light"
 msgstr ""
 
-#: premium/admin/admin.php:353
+#: premium/admin/admin.php:374
 msgid "Dark"
 msgstr ""
 
-#: premium/admin/admin.php:360
+#: premium/admin/admin.php:381
 msgid "Playlist Width"
 msgstr ""
 
-#: premium/admin/admin.php:361 premium/admin/admin.php:369
+#: premium/admin/admin.php:382 premium/admin/admin.php:390
 msgid "In pixels."
 msgstr ""
 
-#: premium/admin/admin.php:368
+#: premium/admin/admin.php:389
 msgid "Playlist Height"
 msgstr ""
 
-#: premium/admin/admin.php:405
+#: premium/admin/admin.php:426
 msgid "Enable Popup Mode"
 msgstr ""
 
-#: premium/admin/admin.php:406
+#: premium/admin/admin.php:427
 msgid ""
 "Open the video in a popup (lightbox) instead of embedding it directly on the "
 "page."
 msgstr ""
 
-#: premium/admin/admin.php:413
+#: premium/admin/admin.php:434
 msgid "Custom Popup Trigger"
 msgstr ""
 
-#: premium/admin/admin.php:414
+#: premium/admin/admin.php:435
 msgid ""
 "Optional. By default, the plugin uses the original video thumbnail as the "
 "popup trigger. Use this field to enter custom text or an image URL to "
 "replace it."
 msgstr ""
 
-#: premium/admin/admin.php:416
+#: premium/admin/admin.php:437
 msgid ""
 "Enter custom text or image URL, or leave empty to use the default video "
 "thumbnail."
 msgstr ""
 
-#: premium/public/templates/theme-single-popup.php:69
+#: premium/public/templates/theme-single-popup.php:72
 #: public/templates/thumbnail.php:81
 msgid "Play"
 msgstr ""
@@ -1099,7 +1115,7 @@ msgstr ""
 msgid "Weekly"
 msgstr ""
 
-#: public/public.php:218
+#: public/public.php:221
 #, php-format
 msgid "%s video found matching your query."
 msgid_plural "%s videos found matching your query."
@@ -1110,7 +1126,7 @@ msgstr[1] ""
 msgid "of"
 msgstr ""
 
-#: public/templates/search-form.php:37
+#: public/templates/search-form.php:38
 msgid "Search Videos"
 msgstr ""
 

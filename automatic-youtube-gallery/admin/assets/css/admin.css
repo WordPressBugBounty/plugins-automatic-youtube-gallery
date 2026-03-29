@@ -313,36 +313,33 @@
  *	Block
  *
  *--------------------------------------------------------------------------------------------*/
-.automatic-youtube-gallery-block-panel .components-panel__row {
+.block-editor .automatic-youtube-gallery-block-panel .components-panel__row {
 	margin-bottom: 1.25em;
 }
 
-.automatic-youtube-gallery-block-panel .components-panel__row .components-base-control {
+.block-editor .automatic-youtube-gallery-block-panel .components-panel__row label {
+	text-transform: capitalize;
+	line-height: 1.6;
+	font-size: 13px;
+    font-weight: normal;    
+}
+
+.block-editor .automatic-youtube-gallery-block-panel .components-panel__row .components-base-control {
 	width: 100%;
 }
 
-.automatic-youtube-gallery-block-panel .components-panel__row .components-range-control__wrapper {
+.block-editor .automatic-youtube-gallery-block-panel .components-panel__row .components-range-control__wrapper {
     flex: 1 1 100%;
 }
 
-.automatic-youtube-gallery-block-panel .components-panel__row .block-editor-panel-color-gradient-settings {	
+.block-editor .automatic-youtube-gallery-block-panel .components-panel__row .block-editor-panel-color-gradient-settings {	
 	padding-left: 0;
 	padding-right: 0;
 	width: 100%;
 }
 
-.wp-block-automatic-youtube-gallery-block .components-spinner {
-	display: flex;
-	align-items: center;
-	width: 100%;
-}
-
-.wp-block-automatic-youtube-gallery-block .components-placeholder {
-	display: none;
-}
-
-.is-loading .wp-block-automatic-youtube-gallery-block {
-	opacity: 0.5;
+.block-editor .automatic-youtube-gallery-block-panel .components-panel__row .block-editor-tools-panel-color-gradient-settings__item {	
+	margin-top: 18px;
 }
 
 /*----------------------------------------------------------------------------------------------

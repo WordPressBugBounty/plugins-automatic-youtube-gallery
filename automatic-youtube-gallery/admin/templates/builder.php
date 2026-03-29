@@ -11,8 +11,14 @@
 
 $fields = ayg_get_editor_fields(); 
 
+$theme           = 'classic';
 $pagination_type = 'more';
+
 foreach ( $fields['gallery']['fields'] as $field ) {
+    if ( 'theme' == $field['name'] ) {
+        $theme = $field['value'];
+    }
+
     if ( 'pagination_type' == $field['name'] ) {
         $pagination_type = $field['value'];
         break;
@@ -24,7 +30,7 @@ foreach ( $fields['gallery']['fields'] as $field ) {
     <!-- Shortcode Builder -->
     <div class="ayg-left-col">
         <div class="ayg-col-content">
-            <div class="ayg-editor ayg-editor-field-type-playlist ayg-editor-field-theme-classic ayg-editor-field-pagination_type-<?php echo esc_attr( $pagination_type ); ?>">              
+            <div class="ayg-editor ayg-editor-field-type-playlist ayg-editor-field-theme-<?php echo esc_attr( $theme ); ?> ayg-editor-field-pagination_type-<?php echo esc_attr( $pagination_type ); ?>">              
                 <?php
                 foreach ( $fields as $key => $value ) : 
                     ?>

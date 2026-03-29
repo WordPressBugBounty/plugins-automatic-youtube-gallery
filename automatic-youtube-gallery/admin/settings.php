@@ -406,7 +406,7 @@ class AYG_Admin_Settings {
 	public function settings_section_callback( $args ) {
         foreach ( $this->sections as $section ) {
             if ( $section['id'] == $args['id'] ) {
-                printf( '<div class="inside">%s</div>', wp_kses_post( $section['description'] ) ); 
+                printf( '<div class="inside"><em>%s</em></div>', wp_kses_post( $section['description'] ) ); 
                 break;
             }
         }

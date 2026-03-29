@@ -407,6 +407,25 @@ ayg-player {
 
 /*----------------------------------------------------------------------------------------------
  *
+ *	Block Editor
+ *
+ *--------------------------------------------------------------------------------------------*/
+.wp-block-automatic-youtube-gallery-block .components-spinner {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.wp-block-automatic-youtube-gallery-block .components-placeholder {
+    display: none;
+}
+
+.is-loading .wp-block-automatic-youtube-gallery-block {
+    opacity: 0.5;
+}
+
+/*----------------------------------------------------------------------------------------------
+ *
  *	Theme
  *
  *--------------------------------------------------------------------------------------------*/

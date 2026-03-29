@@ -241,7 +241,8 @@ function ayg_db_create_custom_tables() {
 		published_at varchar(100) NOT NULL,
 		published_at_datetime datetime NULL,
 		PRIMARY KEY  (NUM),
-		UNIQUE KEY ayg_unique_video_id (id)
+		UNIQUE KEY ayg_unique_video_id (id),
+		INDEX ayg_idx_published_at_datetime (published_at_datetime)
 	) $charset_collate;";
 
 	dbDelta( $sql );
@@ -251,6 +252,13 @@ function ayg_db_create_custom_tables() {
 
 	if ( empty( $existing_keys ) ) {
 		$wpdb->query( "ALTER TABLE $videos_table ADD UNIQUE KEY ayg_unique_video_id (id)" );
+	}
+
+	// Add INDEX on published_at_datetime if it is not added (existing installs)
+	$existing_dt_index = $wpdb->get_results( "SHOW KEYS FROM $videos_table WHERE Key_name = 'ayg_idx_published_at_datetime'" );
+
+	if ( empty( $existing_dt_index ) ) {
+		$wpdb->query( "ALTER TABLE $videos_table ADD INDEX ayg_idx_published_at_datetime (published_at_datetime)" );
 	}
 
 	// Create the galleries table
@@ -290,14 +298,24 @@ function ayg_db_store_videos( $data, $attributes = array() ) {
 
 	global $wpdb;
 
-	$items = $data->items;
+	$items                = $data->items;
+	$gallery_id           = isset( $attributes['uid'] ) ? $attributes['uid'] : '';
+	$source_type          = isset( $attributes['type'] ) ? $attributes['type'] : 'videos';
+	$store_gallery        = ! empty( $gallery_id ) && ! in_array( $source_type, array( 'video', 'livestream' ) );
 
-	// Store Videos
-	foreach ( $items as $item ) {	
+	$videos_table         = $wpdb->prefix . 'ayg_videos';
+	$galleries_table      = $wpdb->prefix . 'ayg_galleries';
+
+	$video_placeholders   = array();
+	$video_values         = array();
+	$gallery_placeholders = array();
+	$gallery_values       = array();
+
+	foreach ( $items as $item ) {
 		$row = array();
 
 		// Video ID
-		$row['id'] = '';	
+		$row['id'] = '';
 
 		if ( isset( $item->snippet->resourceId ) && isset( $item->snippet->resourceId->videoId ) ) {
 			$row['id'] = $item->snippet->resourceId->videoId;
@@ -307,7 +325,7 @@ function ayg_db_store_videos( $data, $attributes = array() ) {
 			$row['id'] = $item->id->videoId;
 		} elseif ( isset( $item->id ) ) {
 			$row['id'] = $item->id;
-		}	
+		}
 
 		if ( empty( $row['id'] ) ) {
 			continue;
@@ -323,76 +341,75 @@ function ayg_db_store_videos( $data, $attributes = array() ) {
 		$row['thumbnails'] = '';
 		if ( isset( $item->snippet->thumbnails ) ) {
 			$row['thumbnails'] = serialize( $item->snippet->thumbnails );
-		}		
+		}
 
 		// Video duration
 		$row['duration'] = '';
 		if ( isset( $item->contentDetails ) && isset( $item->contentDetails->duration ) ) {
 			$row['duration'] = $item->contentDetails->duration;
-		}		
+		}
 
 		// Video status
 		$row['status'] = 'private';
-		
+
 		if ( isset( $item->status ) && ( 'public' == $item->status->privacyStatus || 'unlisted' == $item->status->privacyStatus ) ) {
-			$row['status'] = 'public';				
+			$row['status'] = 'public';
 		}
 
 		if ( isset( $item->snippet->status ) && ( 'public' == $item->snippet->status->privacyStatus || 'unlisted' == $item->snippet->status->privacyStatus ) ) {
-			$row['status'] = 'public';				
+			$row['status'] = 'public';
 		}
 
 		if ( 'youtube#searchResult' == $item->kind ) {
-			$row['status'] = 'public';				
+			$row['status'] = 'public';
 		}
 
 		// Video publish date
 		$row['published_at'] = $item->snippet->publishedAt;
 
 		$datetime = new DateTime( $item->snippet->publishedAt );
-		$row['published_at_datetime'] = date_format( $datetime, 'Y-m-d H:i:s' );	
+		$row['published_at_datetime'] = date_format( $datetime, 'Y-m-d H:i:s' );
 
-		// Store the video
-		$videos_table = $wpdb->prefix . 'ayg_videos';
-
-		$query = $wpdb->prepare(
-			"INSERT INTO $videos_table (id, title, description, thumbnails, duration, status, published_at, published_at_datetime) 
-			VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-			ON DUPLICATE KEY UPDATE 
-			title = VALUES(title), 
-			description = VALUES(description), 
-			thumbnails = VALUES(thumbnails), 
-			duration = VALUES(duration), 
-			status = VALUES(status), 
-			published_at = VALUES(published_at), 
-			published_at_datetime = VALUES(published_at_datetime)",
-			$row['id'], 
-			$row['title'], 
-			$row['description'], 
-			$row['thumbnails'], 
-			$row['duration'], 
-			$row['status'], 
-			$row['published_at'], 
+		// Collect for bulk insert
+		$video_placeholders[] = '(%s, %s, %s, %s, %s, %s, %s, %s)';
+		
+		array_push(
+			$video_values,
+			$row['id'],
+			$row['title'],
+			$row['description'],
+			$row['thumbnails'],
+			$row['duration'],
+			$row['status'],
+			$row['published_at'],
 			$row['published_at_datetime']
 		);
 
-		$wpdb->query( $query );		
-
-		// Store the gallery association		
-		$gallery_id  = isset( $attributes['uid'] ) ? $attributes['uid'] : '';
-		$source_type = isset( $attributes['type'] ) ? $attributes['type'] : 'videos';
-
-		if ( ! empty( $gallery_id ) && ! in_array( $source_type, array( 'video', 'livestream' ) ) ) {
-			$galleries_table = $wpdb->prefix . 'ayg_galleries';
-
-			$query = $wpdb->prepare(
-				"INSERT IGNORE INTO $galleries_table (video_id, gallery_id) VALUES (%s, %s)",
-				$row['id'],
-				$gallery_id
-			);
-
-			$wpdb->query( $query );
+		if ( $store_gallery ) {
+			$gallery_placeholders[] = '(%s, %s)';
+			array_push( $gallery_values, $row['id'], $gallery_id );
 		}
+	}
+
+	// Bulk insert videos (2 queries total instead of N×2)
+	if ( ! empty( $video_placeholders ) ) {
+		$sql = "INSERT INTO $videos_table (id, title, description, thumbnails, duration, status, published_at, published_at_datetime)
+			VALUES " . implode( ', ', $video_placeholders ) . "
+			ON DUPLICATE KEY UPDATE
+			title = VALUES(title),
+			description = VALUES(description),
+			thumbnails = VALUES(thumbnails),
+			duration = VALUES(duration),
+			status = VALUES(status),
+			published_at = VALUES(published_at),
+			published_at_datetime = VALUES(published_at_datetime)";
+
+		$wpdb->query( $wpdb->prepare( $sql, $video_values ) );
+	}
+
+	if ( ! empty( $gallery_placeholders ) ) {
+		$sql = "INSERT IGNORE INTO $galleries_table (video_id, gallery_id) VALUES " . implode( ', ', $gallery_placeholders );
+		$wpdb->query( $wpdb->prepare( $sql, $gallery_values ) );
 	}
 }
 
@@ -441,8 +458,8 @@ function ayg_delete_cache() {
 		delete_transient( $key );
 	}
 	
-	// Reset our DB value
-	update_option( 'ayg_transient_keys', array() );
+	// Reset our DB value (autoload=no: not needed on every page load)
+	update_option( 'ayg_transient_keys', array(), false );
 }
 
 /** 

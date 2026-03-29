@@ -150,11 +150,34 @@ class AYG_Public {
 	}
 
 	/**
-	 * Enqueue Gutenberg block assets for backend editor.
+	 * Enqueue block assets inside the block editor (iframe).
+	 *
+	 * Hooked to enqueue_block_assets with an is_admin() guard so styles and scripts
+	 * are injected inside the iframed block editor (WP 6.3+ / WP 7.0 always) only,
+	 * and not duplicated on the front end where wp_enqueue_scripts already handles them.
+	 *
+	 * @since 2.7.2
+	 */
+	public function enqueue_block_assets() {
+		if ( ! is_admin() ) {
+			return;
+		}
+
+		$this->enqueue_editor_assets();
+	}
+
+	/**
+	 * Enqueue the plugin's public styles and scripts in any editor context.
+	 *
+	 * Called by enqueue_block_assets() (WordPress block editor, guarded by is_admin())
+	 * and hooked directly to Elementor actions so assets are also available in the
+	 * Elementor editor panel and its frontend live-preview iframe:
+	 *   - elementor/editor/after_enqueue_scripts  (admin context)
+	 *   - elementor/preview/enqueue_scripts       (frontend context, is_admin() = false)
 	 *
 	 * @since 1.6.1
 	 */
-	public function enqueue_block_editor_assets() {
+	public function enqueue_editor_assets() {
 		// Styles
 		$this->register_styles();
 		wp_enqueue_style( AYG_SLUG . '-public' );
