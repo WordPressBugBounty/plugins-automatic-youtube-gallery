@@ -300,11 +300,6 @@
             video.src += '&cc_load_policy=1';
         }
 
-        let iv_load_policy = params.hasOwnProperty( 'iv_load_policy' ) ? parseInt( params.iv_load_policy ) : 0;
-        if ( iv_load_policy == 0 ) {
-            video.src += '&iv_load_policy=3';
-        }
-
         if ( params.hasOwnProperty( 'hl' ) && params.hl.length > 0 ) {
             video.src += '&hl=' + params.hl;
         }
@@ -679,6 +674,16 @@
 
             this._plyr.on( 'ended', ( event ) => {
                 event.target.className += ' plyr--stopped';
+
+                if ( document.fullscreenElement ) {
+                    document.exitFullscreen().catch(() => {});
+
+                    setTimeout( () => {
+                        this._dispatchEvent( 'ended' );
+                    }, 500 );
+                } else {
+                    this._dispatchEvent( 'ended' );
+                }
             });
         }
 

@@ -148,6 +148,7 @@ ayg-search-form form button:focus {
 	width: 2em;
 	height: 100%;
 	line-height: 1;
+    color: inherit;
 }
 
 ayg-search-form form .ayg-loading {
@@ -356,7 +357,6 @@ ayg-player {
 
 .ayg-thumbnail .ayg-thumbnail-title {
     line-height: 1.5;
-    font-size: 1.1em;
     font-weight: 600;
 }
 
@@ -402,7 +402,7 @@ ayg-player {
 }
 
 .ayg-pagination.ayg-loading * {
-    visibility: hidden;
+    display: none;
 }
 
 /*----------------------------------------------------------------------------------------------

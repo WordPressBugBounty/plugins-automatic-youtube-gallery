@@ -64,7 +64,12 @@ class AYG_YouTube_API {
 
 	/**
 	 * Get videos.
-	 * 
+	 *
+	 * Side effect: successful responses are persisted to the custom tables via
+	 * ayg_db_store_videos() (called inside request_api()) — video rows always, and
+	 * gallery relationships when a "uid" param is supplied. This is how both legacy
+	 * galleries and the Gallery Builder importer store their videos.
+	 *
 	 * @since  1.0.0
      * @param  array $params Array of query params.
      * @return mixed
@@ -72,6 +77,12 @@ class AYG_YouTube_API {
     public function query( $params = array() ) {
 		// Get YouTube API Key
 		$general_settings = ayg_get_option( 'ayg_general_settings' );
+
+		// DB-served responses (gallery search + the internal "db" source type) read from the
+		// custom tables, so they're handled before the API-key guard — no key required.
+		if ( ! empty( $params['searchTerm'] ) || ( isset( $params['type'] ) && 'db' === $params['type'] ) ) {
+			return $this->get_videos_from_db( $params );
+		}
 
 		if ( empty( $general_settings['api_key'] ) ) {
 			return $this->get_error( __( 'YouTube API key not found.', 'automatic-youtube-gallery' ) . ' ' . sprintf( __( 'Kindly follow this URL <a href="%s" target="_blank" rel="noopener noreferrer">this guide</a> to get your own API key.', 'automatic-youtube-gallery' ), 'https://plugins360.com/automatic-youtube-gallery/how-to-get-youtube-api-key/' ) );
@@ -85,18 +96,18 @@ class AYG_YouTube_API {
 			$this->is_development_mode = true;
 		}
 
+		// Advanced mode fetches duration + live broadcast details via a supplementary
+		// videos.list call (used by the Gallery Builder importer). Defaults to off so
+		// legacy galleries make no extra API request.
+		$mode = isset( $params['mode'] ) ? $params['mode'] : 'basic';
+
 		// Process output
 		$response = array();
-
-		if ( ! empty( $params['searchTerm'] ) ) {
-			$response = $this->get_videos_from_db( $params );
-			return $response;
-		}
 
 		switch ( $params['type'] ) {
 			case 'playlist':
 				if ( empty( $params['src'] ) ) {
-					return $this->get_error( __( 'YouTube Playlist ID (or) URL is required.', 'automatic-youtube-gallery' ) );
+					return $this->get_error( __( 'A YouTube playlist ID (or) URL is required.', 'automatic-youtube-gallery' ) );
 				}
 				
 				$response = $this->request_api_playlist_items( $params );
@@ -104,13 +115,19 @@ class AYG_YouTube_API {
 
 			case 'channel':
 				if ( empty( $params['src'] ) ) {
-					return $this->get_error( __( 'YouTube Channel ID (or) or a YouTube Video URL from the Channel is required.', 'automatic-youtube-gallery' ) );
+					return $this->get_error( __( 'A YouTube channel ID (or) a video URL from the channel is required.', 'automatic-youtube-gallery' ) );
+				}
+
+				// @handle URLs can't be resolved to a channel ID here (mirrors the client-side
+				// check in admin.js / gallery-form.php).
+				if ( false !== strpos( $params['src'], '@' ) ) {
+					return $this->get_error( __( 'YouTube @handle URLs aren’t supported here. Please enter a channel ID, a /channel/ URL, or a video URL from the channel.', 'automatic-youtube-gallery' ) );
 				}
 
 				$params['id'] = $this->get_channel_id( $params );
 
 				if ( empty( $params['id'] ) ) {
-					return $this->get_error( __( 'Invalid YouTube Channel ID.', 'automatic-youtube-gallery' ) );
+					return $this->get_error( __( 'Invalid YouTube channel ID.', 'automatic-youtube-gallery' ) );
 				}
 
 				// Get playlist id from the channel	
@@ -131,7 +148,7 @@ class AYG_YouTube_API {
 
 			case 'username':
 				if ( empty( $params['src'] ) ) {
-					return $this->get_error( __( 'YouTube Account Username is required.', 'automatic-youtube-gallery' ) );
+					return $this->get_error( __( 'A YouTube account username is required.', 'automatic-youtube-gallery' ) );
 				}
 
 				// Get playlist id from the channel 
@@ -153,7 +170,7 @@ class AYG_YouTube_API {
 
 			case 'search':
 				if ( empty( $params['src'] ) ) {
-					return $this->get_error( __( 'Cannot search an empty string. A search keyword is required.', 'automatic-youtube-gallery' ) );
+					return $this->get_error( __( 'A search keyword is required.', 'automatic-youtube-gallery' ) );
 				}
 				
 				$response = $this->request_api_search( $params );						
@@ -161,7 +178,7 @@ class AYG_YouTube_API {
 
 			case 'videos':			
 				if ( empty( $params['src'] ) ) {
-					return $this->get_error( __( 'Atleast one YouTube Video ID (or) URL is required.', 'automatic-youtube-gallery' ) );
+					return $this->get_error( __( 'At least one YouTube video ID (or) URL is required.', 'automatic-youtube-gallery' ) );
 				}
 
 				$response = $this->request_api_videos( $params );
@@ -169,13 +186,19 @@ class AYG_YouTube_API {
 
 			case 'livestream':
 				if ( empty( $params['src'] ) ) {
-					return $this->get_error( __( 'YouTube Channel ID (or) or a YouTube Video URL from the Channel is required.', 'automatic-youtube-gallery' ) );
+					return $this->get_error( __( 'A YouTube channel ID (or) a video URL from the channel is required.', 'automatic-youtube-gallery' ) );
+				}
+
+				// @handle URLs can't be resolved to a channel ID here (mirrors the client-side
+				// check in admin.js / gallery-form.php).
+				if ( false !== strpos( $params['src'], '@' ) ) {
+					return $this->get_error( __( 'YouTube @handle URLs aren’t supported here. Please enter a channel ID, a /channel/ URL, or a video URL from the channel.', 'automatic-youtube-gallery' ) );
 				}
 
 				$params['channelId'] = $this->get_channel_id( $params );
 
 				if ( empty( $params['channelId'] ) ) {
-					return $this->get_error( __( 'Invalid YouTube Channel ID.', 'automatic-youtube-gallery' ) );
+					return $this->get_error( __( 'Invalid YouTube channel ID.', 'automatic-youtube-gallery' ) );
 				}
 
 				// Get live video using the channel id
@@ -184,11 +207,17 @@ class AYG_YouTube_API {
 
 			default: // video
 				if ( empty( $params['src'] ) ) {
-					return $this->get_error( __( 'YouTube Video ID (or) URL is required.', 'automatic-youtube-gallery' ) );
+					return $this->get_error( __( 'A YouTube video ID (or) URL is required.', 'automatic-youtube-gallery' ) );
 				}
 				
 				$response = $this->request_api_video( $params );
 				break;
+		}
+
+		// Advanced mode: enrich channel/playlist/username/search videos (which come from
+		// playlistItems.list / search.list and lack duration + live broadcast details).
+		if ( 'advanced' === $mode && ! isset( $response->error ) && ! empty( $response->videos ) && in_array( $params['type'], array( 'playlist', 'channel', 'username', 'search' ), true ) ) {
+			$response->videos = $this->enrich_video_details( $response->videos );
 		}
 
 		return $response;
@@ -460,12 +489,13 @@ class AYG_YouTube_API {
 				'videoEmbeddable' => true,
 				'part'            => 'id,snippet',
 				'order'           => 'date',
+				'publishedAfter'  => '', // Set by incremental sync to fetch only newly published videos
 				'maxResults'      => 50,
 				'pageToken'       => '',
 				'cache'           => 0
 			),
 			$params
-		);		
+		);
 		
 		$api_response = $this->request_api( $api_url, $api_params );
 		if ( isset( $api_response->error ) ) {
@@ -577,10 +607,12 @@ class AYG_YouTube_API {
     private function request_api_videos( $params = array() ) {
 		$api_url = $this->get_api_url( 'videos.list' );		
 
-		$urls = str_replace( "\n\r", ',', $params['src'] );
-		$urls = str_replace( ' ', ',', $urls );
-		$urls = explode( ',', $urls );
-		$urls = array_filter( $urls );
+		// Accept the video list separated by commas, spaces, or newlines (one per line) in any
+		// combination and line-ending style. The old "\n\r" replace looked for LF+CR (reversed),
+		// so a one-per-line list never split — it collapsed into a single invalid ID and returned
+		// "No videos found". Split on any run of whitespace or commas and drop empties instead.
+		$urls = preg_split( '/[\s,]+/', trim( (string) $params['src'] ), -1, PREG_SPLIT_NO_EMPTY );
+		$urls = is_array( $urls ) ? $urls : array();
 
 		$all_ids = array();
 		foreach ( $urls as $url ) {
@@ -649,50 +681,125 @@ class AYG_YouTube_API {
     private function get_videos_from_db( $params = array() ) {
 		global $wpdb;
 
-		$videos_table    = $wpdb->prefix . 'ayg_videos';
-		$galleries_table = $wpdb->prefix . 'ayg_galleries';
+		$videos_table = $wpdb->prefix . 'ayg_videos';
+		$rel_table    = $wpdb->prefix . 'ayg_gallery_relationships';
 
-		$search_term = '%' . $wpdb->esc_like( $params['searchTerm'] ) . '%';
-		$gallery_id  = $params['uid'];
+		$gallery_id = $params['uid'];
+
+		// Base query: every video linked to this gallery. An optional search term (the search
+		// form) narrows it by title/description; the "db" source type passes none and gets all.
+		$where  = 'r.gallery_id = %s';
+		$values = array( $gallery_id );
+
+		if ( ! empty( $params['searchTerm'] ) ) {
+			$search_term = '%' . $wpdb->esc_like( $params['searchTerm'] ) . '%';
+
+			$where   .= ' AND (v.title LIKE %s OR v.description LIKE %s)';
+			$values[] = $search_term;
+			$values[] = $search_term;
+		}
+
+		// Optional duration filter. Whitelisted operator; value parameterized. Affects count + select.
+		$duration_filter = isset( $params['duration_filter'] ) ? $params['duration_filter'] : '';
+		$duration        = isset( $params['duration'] ) ? (int) $params['duration'] : 0;
+
+		if ( $duration > 0 && in_array( $duration_filter, array( 'long', 'short' ), true ) ) {
+			$where   .= ( 'long' === $duration_filter ) ? ' AND v.duration_seconds > %d' : ' AND v.duration_seconds < %d';
+			$values[] = $duration;
+		}
 
 		// Get Total Videos Count
-		$total_query = $wpdb->prepare(
-			"SELECT COUNT(*)
-			FROM $videos_table AS v
-			INNER JOIN $galleries_table AS g ON v.id = g.video_id
-			WHERE g.gallery_id = %s
-			AND (v.title LIKE %s OR v.description LIKE %s)",
-			$gallery_id, $search_term, $search_term
+		$total_videos = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*)
+				FROM $videos_table AS v
+				INNER JOIN $rel_table AS r ON v.video_id = r.video_id
+				WHERE $where",
+				$values
+			)
 		);
-		
-		$total_videos = $wpdb->get_var( $total_query );
 
 		if ( empty( $total_videos ) ) {
 			return $this->get_error( __( 'No videos found matching your query.', 'automatic-youtube-gallery' ) );
 		}
 
 		// Fetch Paginated Videos
-		$limit = $params['maxResults'];
-		
-		$total_pages  = ceil( $total_videos / $limit );
+		$limit = (int) $params['maxResults'];
 
-		$current_page = isset( $params['pageToken'] ) ? (int) $params['pageToken'] : 1;
-		$current_page = max( $current_page, 1 );
-		$current_page = min( $current_page, $total_pages );
+		if ( $limit <= 0 ) {
+			// 0 = show all videos on a single page (Gallery Builder "unlimited" per page).
+			// A LIMIT of the total count avoids the empty result set that LIMIT 0 would return.
+			$limit        = (int) $total_videos;
+			$total_pages  = 1;
+			$current_page = 1;
+			$offset       = 0;
+		} else {
+			$total_pages  = ceil( $total_videos / $limit );
 
-		$offset = max( 0, ( $current_page - 1 ) * $limit );
+			$current_page = isset( $params['pageToken'] ) ? (int) $params['pageToken'] : 1;
+			$current_page = max( $current_page, 1 );
+			$current_page = min( $current_page, $total_pages );
+
+			$offset = max( 0, ( $current_page - 1 ) * $limit );
+		}
+
+		// Display-time ordering. Whitelisted (ORDER BY can't be parameterized); v.id breaks ties.
+		$orderby_map = array(
+			'date'     => 'v.published_at_datetime',
+			'title'    => 'v.title',
+			'duration' => 'v.duration_seconds'
+		);
+
+		$sort_by_raw = isset( $params['sort_by'] ) ? $params['sort_by'] : 'date';
+		$sort_order  = ( isset( $params['sort_order'] ) && 'asc' === strtolower( $params['sort_order'] ) ) ? 'ASC' : 'DESC';
+
+		// Random: a seed (set per render in ayg_build_gallery) makes RAND(seed) stable across this
+		// gallery's own pagination/search, so pages don't repeat or skip videos.
+		$random_seed = 0;
+
+		if ( 'random' === $sort_by_raw ) {
+			$random_seed = isset( $params['sort_seed'] ) ? (int) $params['sort_seed'] : 0;
+			$order_by    = ( $random_seed > 0 ) ? 'RAND(%d)' : 'RAND()';
+		} else {
+			$sort_by  = isset( $orderby_map[ $sort_by_raw ] ) ? $orderby_map[ $sort_by_raw ] : 'v.published_at_datetime';
+			$order_by = "$sort_by $sort_order, v.id $sort_order";
+		}
+
+		// Deeplinked video: pin it to the top of the list so page 1 starts with the shared video
+		// while the per-page count stays exact. The pin reorders the whole list (not just page 1),
+		// so paginated AJAX requests passing the same id never repeat or skip videos. Ignored
+		// while searching — search results are a fresh listing of their own.
+		$featured_video_id = '';
+
+		if ( empty( $params['searchTerm'] ) && ! empty( $params['featured_video_id'] ) ) {
+			$featured_video_id = (string) $params['featured_video_id'];
+			$order_by          = '(v.video_id = %s) DESC, ' . $order_by;
+		}
+
+		// Assemble placeholder values in SQL order: WHERE ..., [featured video], [seed], LIMIT, OFFSET.
+		$query_values = $values;
+
+		if ( '' !== $featured_video_id ) {
+			$query_values[] = $featured_video_id;
+		}
+
+		if ( $random_seed > 0 ) {
+			$query_values[] = $random_seed;
+		}
+
+		$query_values[] = $limit;
+		$query_values[] = $offset;
 
 		$query = $wpdb->prepare(
 			"SELECT v.*
 			FROM $videos_table AS v
-			INNER JOIN $galleries_table AS g ON v.id = g.video_id
-			WHERE g.gallery_id = %s
-			AND (v.title LIKE %s OR v.description LIKE %s)
-			ORDER BY v.published_at_datetime DESC
+			INNER JOIN $rel_table AS r ON v.video_id = r.video_id
+			WHERE $where
+			ORDER BY $order_by
 			LIMIT %d OFFSET %d",
-			$gallery_id, $search_term, $search_term, $limit, $offset
+			$query_values
 		);
-		
+
 		$videos = $wpdb->get_results( $query );
 
 		if ( empty( $videos ) ) {
@@ -703,6 +810,9 @@ class AYG_YouTube_API {
 			if ( ! empty( $video->thumbnails ) ) {
 				$videos[ $index ]->thumbnails = maybe_unserialize( $video->thumbnails );
 			}
+
+			// Backward compat: templates reference $video->id as the YouTube video ID.
+			$videos[ $index ]->id = $video->video_id;
 		}
 
 		// Process output
@@ -767,12 +877,16 @@ class AYG_YouTube_API {
 
 		$api_url = $url . ( strpos( $url, '?' ) === false ? '?' : '&' ) . http_build_query( $params );
 		if ( ! empty( $q ) ) {
-			$api_url .= '&q=' . $q; 
+			$api_url .= '&q=' . $q;
 		}
+
+		// Prefix the cache key with the gallery uid so a single gallery's transients can be cleared
+		// on demand (e.g. saving a live search/livestream gallery) via ayg_delete_cache( $uid ).
+		$cache_uid = isset( $this->params['uid'] ) ? (string) $this->params['uid'] : '';
+		$cache_key = 'ayg_' . ( '' !== $cache_uid ? $cache_uid . '_' : '' ) . md5( $api_url );
 
 		// Request from cache
 		if ( ! $this->is_development_mode && $cache_duration > 0 ) {
-			$cache_key  = 'ayg_' . md5( $api_url );		
 			$cache_data = get_transient( $cache_key );
 
 			if ( ! empty( $cache_data ) ) {
@@ -856,17 +970,24 @@ class AYG_YouTube_API {
      */
     private function parse_videos( $data ) {
 		if ( empty( $data->items ) || ! is_array( $data->items ) ) {
-			return $this->get_error( __( 'No videos found matching your query.', 'automatic-youtube-gallery' ) );
+			$error = $this->get_error( __( 'No videos found matching your query.', 'automatic-youtube-gallery' ) );
+
+			// Flag an empty result set so an incremental sync can tell "nothing new" apart
+			// from a genuine API failure (quota, bad source) and complete cleanly.
+			$error->no_results = true;
+
+			return $error;
 		}
 
-		$items  = $data->items;
-		$videos = array();
+		$items   = $data->items;
+		$videos  = array();
+		$exclude = ( isset( $this->params['exclude'] ) && is_array( $this->params['exclude'] ) ) ? $this->params['exclude'] : array();
 
 		foreach ( $items as $item ) {
 			$video = new stdClass();
 
 			// Video ID
-			$video->id = '';	
+			$video->id = '';
 
 			if ( isset( $item->snippet->resourceId ) && isset( $item->snippet->resourceId->videoId ) ) {
 				$video->id = $item->snippet->resourceId->videoId;
@@ -876,9 +997,14 @@ class AYG_YouTube_API {
 				$video->id = $item->id->videoId;
 			} elseif ( isset( $item->id ) ) {
 				$video->id = $item->id;
-			}	
+			}
 
-			// Video channel ID	
+			// Skip videos on the gallery's exclude list
+			if ( ayg_is_video_excluded( $video->id, $exclude ) ) {
+				continue;
+			}
+
+			// Video channel ID
 			$video->channel_id = '';
 			
 			if ( isset( $item->snippet->channelId ) ) {
@@ -927,6 +1053,66 @@ class AYG_YouTube_API {
 	}
 
 	/**
+	 * Enrich parsed videos with duration and live broadcast details.
+	 *
+	 * playlistItems.list / search.list responses lack contentDetails.duration and
+	 * snippet.liveBroadcastContent, so this makes a supplementary videos.list request (1 quota
+	 * unit per 50 IDs) — updating the stored rows and merging duration + video_type into $videos.
+	 *
+	 * @since  2.8.0
+	 * @access private
+	 * @param  array   $videos Parsed video objects from parse_videos().
+	 * @return array           The same videos, with duration / duration_seconds / video_type set.
+	 */
+	private function enrich_video_details( $videos ) {
+		// Index by video ID for the merge. PHP holds objects by handle, so mutating a $map
+		// entry below also updates the same instance in $videos (what we return).
+		$map = array();
+
+		foreach ( $videos as $video ) {
+			if ( ! empty( $video->id ) ) {
+				$map[ $video->id ] = $video;
+			}
+		}
+
+		if ( empty( $map ) ) {
+			return $videos;
+		}
+
+		$api_url = $this->get_api_url( 'videos.list' );
+
+		// videos.list accepts up to 50 IDs per request.
+		foreach ( array_chunk( array_keys( $map ), 50 ) as $chunk ) {
+			$api_params = array(
+				'id'   => implode( ',', $chunk ),
+				'part' => 'id,snippet,contentDetails,status'
+			);
+
+			// request_api() also stores the enriched rows (videos.list response →
+			// ayg_db_store_videos() writes duration_seconds + video_type).
+			$api_response = $this->request_api( $api_url, $api_params );
+
+			if ( isset( $api_response->error ) || empty( $api_response->items ) || ! is_array( $api_response->items ) ) {
+				continue;
+			}
+
+			foreach ( $api_response->items as $item ) {
+				if ( empty( $item->id ) || ! isset( $map[ $item->id ] ) ) {
+					continue;
+				}
+
+				$duration = isset( $item->contentDetails->duration ) ? $item->contentDetails->duration : '';
+
+				$map[ $item->id ]->duration         = $duration;
+				$map[ $item->id ]->duration_seconds = ayg_parse_duration_seconds( $duration );
+				$map[ $item->id ]->video_type       = ! empty( $item->snippet->liveBroadcastContent ) ? $item->snippet->liveBroadcastContent : 'none';
+			}
+		}
+
+		return $videos;
+	}
+
+	/**
      * Parse page info from the YouTube API response object.
      *
 	 * @since  1.0.0
@@ -950,7 +1136,8 @@ class AYG_YouTube_API {
 				$limit = min( (int) $this->params['limit'], $page_info['videos_found'] );
 				$page_info['total_pages'] = ceil( $limit / (int) $this->params['maxResults'] );
 			} else {
-				$page_info['total_pages'] = ceil( $page_info['videos_found'] / (int) $this->params['maxResults'] );
+				$max_results = (int) $this->params['maxResults'];
+				$page_info['total_pages'] = ( $max_results <= 0 ) ? 1 : ceil( $page_info['videos_found'] / $max_results );
 			}
 		}
 

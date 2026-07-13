@@ -151,7 +151,7 @@ class AYG_Admin_Settings {
             array(
                 'id'          => 'ayg_privacy_settings',
                 'title'       => __( 'GDPR Compliance', 'automatic-youtube-gallery' ),
-                'description' => __( 'These options will help with privacy restrictions such as GDPR and the EU Cookie Law.', 'automatic-youtube-gallery' ),
+                'description' => '',
                 'tab'         => 'privacy',
                 'page'        => 'ayg_privacy_settings'
             ),				
@@ -171,11 +171,11 @@ class AYG_Admin_Settings {
         $fields['ayg_general_settings']	= array(
             array(
                 'name'              => 'api_key',
-                'label'             => __( 'Youtube API Key', 'automatic-youtube-gallery' ),
-                'description'       => sprintf( 
-                    __( 'Follow <a href="%s" target="_blank" rel="noopener noreferrer">this guide</a> to get your own API key.', 'automatic-youtube-gallery' ),  
-                    'https://plugins360.com/automatic-youtube-gallery/how-to-get-youtube-api-key/' 
-                ),
+                'label'             => __( 'YouTube API Key', 'automatic-youtube-gallery' ),
+                'description'       => sprintf(
+					__( 'A free YouTube Data API key is required to fetch your videos. <a href="%s" target="_blank" rel="noopener noreferrer">Get your API key</a> in just a few minutes.', 'automatic-youtube-gallery' ),
+					'https://plugins360.com/automatic-youtube-gallery/how-to-get-youtube-api-key/'
+				),
                 'type'              => 'text',
                 'sanitize_callback' => 'sanitize_text_field'
             ),
@@ -185,22 +185,22 @@ class AYG_Admin_Settings {
                 'description'       => __( 'Force-load the plugin\'s CSS and/or JavaScript files on all front-end pages. Enable this option only if layouts do not render correctly due to page builders or theme conflicts.', 'automatic-youtube-gallery' ),
                 'type'              => 'multicheck', 
                 'options'           => array( 
-                    'css' => __( 'Force load CSS (recommended)', 'automatic-youtube-gallery' ), 
-                    'js'  => __( 'Force load JavaScript (advanced)', 'automatic-youtube-gallery' ), 
+                    'css' => __( 'Force load CSS', 'automatic-youtube-gallery' ), 
+                    'js'  => __( 'Force load JavaScript', 'automatic-youtube-gallery' ), 
                 ), 
                 'sanitize_callback' => 'ayg_sanitize_array' 
             ),
             array(
                 'name'              => 'lazyload',
-                'label'             => __( 'Lazyload Images / Videos', 'automatic-youtube-gallery' ),
-                'description'       => __( 'Enable this option to lazy load images and videos added by the plugin to enhance page load speed and performance. If you experience any issues with content display, try disabling this option.', 'automatic-youtube-gallery' ),
+                'label'             => __( 'Lazy Load Images / Videos', 'automatic-youtube-gallery' ),
+                'description'       => __( 'Check this option to lazy load images and videos added by the plugin to enhance page load speed and performance. If you experience any issues with content display, try disabling this option.', 'automatic-youtube-gallery' ),
                 'type'              => 'checkbox',
                 'sanitize_callback' => 'intval'
             ),
             array(
                 'name'              => 'development_mode',
                 'label'             => __( 'Development Mode', 'automatic-youtube-gallery' ),
-                'description'       => __( 'Does not cache API results when checked. We strongly recommend disabling this option when your site is live.', 'automatic-youtube-gallery' ),
+                'description'       => __( 'Check this option to stop caching API results. We strongly recommend disabling this option when your site is live.', 'automatic-youtube-gallery' ),
                 'type'              => 'checkbox',
                 'sanitize_callback' => 'intval'
             )
@@ -262,8 +262,8 @@ class AYG_Admin_Settings {
         $player_settings = array(
             array(
                 'name'              => 'player_type',
-                'label'             => __( 'Player Type', 'automatic-youtube-gallery' ),	
-                'description'       => '',		
+                'label'             => __( 'Player Type', 'automatic-youtube-gallery' ),
+                'description'       => __( 'Choose how videos are embedded. "Native YouTube Embed" uses YouTube\'s standard iframe, while "Custom Video Player" provides a lightweight, styled player with more control over its appearance.', 'automatic-youtube-gallery' ),
                 'type'              => 'radio',
                 'options'           => array(
                     'youtube' => __( 'Native YouTube Embed', 'automatic-youtube-gallery' ),
@@ -285,7 +285,7 @@ class AYG_Admin_Settings {
         $player_settings[] = array(
 			'name'              => 'privacy_enhanced_mode',
 			'label'             => __( 'Privacy Enhanced Mode', 'automatic-youtube-gallery' ),
-			'description'       => __( "Prevent YouTube from leaving tracking cookies on your visitor's browsers unless they actually play the videos. Please uncheck this option if you see errors while testing your playlist embeds or watching your videos on mobile.", 'automatic-youtube-gallery' ),
+			'description'       => __( "Check this option to prevent YouTube from leaving tracking cookies on your visitor's browsers unless they actually play the videos. Please uncheck this option if you see errors while testing your playlist embeds or watching your videos on mobile.", 'automatic-youtube-gallery' ),
 			'type'              => 'checkbox',
 			'sanitize_callback' => 'intval'
 		);
@@ -293,7 +293,7 @@ class AYG_Admin_Settings {
         $player_settings[] = array(
 			'name'              => 'origin',
 			'label'             => __( 'Extra Player Security', 'automatic-youtube-gallery' ),
-			'description'       => __( 'Add site origin information with each embed code as an extra security measure. In YouTube\'s own words, checking this option "protects against malicious third-party JavaScript being injected into your page and hijacking control of your YouTube player."', 'automatic-youtube-gallery' ),
+			'description'       => __( 'Check this option to add site origin information with each embed code as an extra security measure. In YouTube\'s own words, checking this option "protects against malicious third-party JavaScript being injected into your page and hijacking control of your YouTube player."', 'automatic-youtube-gallery' ),
 			'type'              => 'checkbox',
 			'sanitize_callback' => 'intval'
 		);
@@ -316,21 +316,21 @@ class AYG_Admin_Settings {
             array(
                 'name'              => 'cookie_consent',
                 'label'             => __( 'Cookie Consent', 'automatic-youtube-gallery' ),
-                'description'       => __( 'Ask for viewer consent to store YouTube cookies before showing videos.', 'automatic-youtube-gallery' ),
+                'description'       => __( 'Check this option to ask for viewer consent to store YouTube cookies before showing videos.', 'automatic-youtube-gallery' ),
                 'type'              => 'checkbox',
                 'sanitize_callback' => 'intval'
             ),
             array(
                 'name'              => 'consent_message',
                 'label'             => __( 'Consent Message', 'automatic-youtube-gallery' ),
-                'description'       => '',
+                'description'       => __( 'The message shown to visitors asking for their permission before YouTube videos and cookies are loaded.', 'automatic-youtube-gallery' ),
                 'type'              => 'wysiwyg',
                 'sanitize_callback' => 'wp_kses_post'
             ),
             array(
                 'name'              => 'button_label',
-                'label'             => __( 'Button Label', 'automatic-youtube-gallery' ),
-                'description'       => '',
+                'label'             => __( 'Consent Button Label', 'automatic-youtube-gallery' ),
+                'description'       => __( 'Text for the button visitors click to accept and load the video (e.g. "Accept" or "Load video").', 'automatic-youtube-gallery' ),
                 'type'              => 'text',
                 'sanitize_callback' => 'sanitize_text_field'
             )
@@ -406,7 +406,7 @@ class AYG_Admin_Settings {
 	public function settings_section_callback( $args ) {
         foreach ( $this->sections as $section ) {
             if ( $section['id'] == $args['id'] ) {
-                printf( '<div class="inside"><em>%s</em></div>', wp_kses_post( $section['description'] ) ); 
+                printf( '<div class="inside">%s</div>', wp_kses_post( $section['description'] ) ); 
                 break;
             }
         }
@@ -608,7 +608,7 @@ class AYG_Admin_Settings {
         $label = isset( $args['options']['button_label'] ) ? $args['options']['button_label'] : __( 'Choose File', 'automatic-youtube-gallery' );
 		
         $html  = sprintf( '<input type="text" class="%1$s ayg-settings-url" id="%2$s[%3$s]" name="%2$s[%3$s]" value="%4$s"/>', $size, $args['section'], $args['id'], $value );
-        $html .= '<input type="button" class="button ayg-settings-browse" value="' . $label . '" />';
+        $html .= '<input type="button" class="button ayg-button-upload-media" value="' . $label . '" />';
         $html .= $this->get_field_description( $args );
 		
         echo $html;		
@@ -763,11 +763,13 @@ class AYG_Admin_Settings {
 	public function ajax_callback_delete_cache() {
         check_ajax_referer( 'ayg_ajax_nonce', 'security' );
 
-        if ( current_user_can( 'manage_options' ) ) {
-            ayg_delete_cache();
-        }
+        if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'automatic-youtube-gallery' ) ) );
+		}
+
+        ayg_delete_cache();
         
-        wp_die();
+        wp_send_json_success();
     }
 
 }

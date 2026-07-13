@@ -26,6 +26,16 @@ class AYG_Deactivator {
 	 *
 	 * @since 1.0.0
 	 */
-	public static function deactivate() { }
+	public static function deactivate() {
+		// Clear the plugin's scheduled cron events so they don't keep firing while the
+		// plugin is inactive.
+		if ( wp_next_scheduled( 'ayg_schedule_weekly' ) ) {
+			wp_clear_scheduled_hook( 'ayg_schedule_weekly' );
+		}
+
+		if ( wp_next_scheduled( 'ayg_cron_schedule' ) ) {
+			wp_clear_scheduled_hook( 'ayg_cron_schedule' );
+		}
+	}
 
 }

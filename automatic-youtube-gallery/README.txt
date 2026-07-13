@@ -1,4 +1,4 @@
-﻿=== Automatic YouTube Gallery ===
+=== Automatic YouTube Gallery – Embed Auto-Updating YouTube Video Galleries, Feeds, Playlists & Channels ===
 Plugin URI: https://plugins360.com/automatic-youtube-gallery/
 Contributors: plugins360, wpvideogallery, freemius
 Donate link: https://plugins360.com
@@ -6,63 +6,92 @@ Tags: youtube gallery, youtube playlist, youtube channel, youtube embed, youtube
 Requires at least: 6.3
 Tested up to: 7.0
 Requires PHP: 5.6.20
-Stable tag: 2.7.2
+Stable tag: 2.8.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Build dynamic video galleries by simply adding a YouTube USERNAME, CHANNEL, PLAYLIST, SEARCH KEYWORDS, or a custom list of video URLs.
+Embed YouTube videos, playlists, channels, live streams & Shorts in a responsive video gallery that stays up to date automatically.
 
 == Description ==
 
+★★★★★ [Rated 4.8/5](https://wordpress.org/support/plugin/automatic-youtube-gallery/reviews/?filter=5) — Trusted by 9,000+ WordPress sites
+
 Create responsive, modern & dynamic video galleries by simply adding a YouTube USERNAME, CHANNEL, PLAYLIST, SEARCH KEYWORDS, or a custom list of video URLs.
+
+**Automatic YouTube Gallery** is the easiest way to embed a YouTube video gallery, feed, or playlist on your WordPress website. Connect your YouTube source once — the plugin imports your videos, builds a beautiful video gallery, and keeps it up to date automatically every time you publish a new video on YouTube. No copy-pasting embed codes, ever again.
 
 * [View Demo](https://demo.plugins360.com/automatic-youtube-gallery/)
 * [Documentation](https://plugins360.com/automatic-youtube-gallery/documentation/)
 * [Contact & Support](https://plugins360.com/support/)
 * [Home Page](https://plugins360.com/automatic-youtube-gallery/)
 
+https://www.youtube.com/watch?v=Y1YKkXobWqI&rel=0
+
 <blockquote>
-The only dynamic YouTube gallery plugin with <a href="https://plugins360.com/automatic-youtube-gallery/deeplinking/">deeplinking</a> capabilities.
+The only dynamic YouTube gallery plugin with <a href="https://plugins360.com/automatic-youtube-gallery/deeplinking/">deeplinking</a> capabilities — every video in your gallery can have its own shareable, search-engine-friendly URL.
 </blockquote>
 
-https://www.youtube.com/watch?v=a90OGk42fJ4&rel=0
+### EMBED FROM ANY YOUTUBE SOURCE — SET IT ONCE, IT UPDATES ITSELF
 
-### STANDARD FEATURES
+* **Channel** — embed a YouTube channel gallery that grows with every upload.
+* **Playlist** — embed a YouTube playlist as a video gallery or feed.
+* **Username** — display all videos from a YouTube account.
+* **Search Keywords** — build a gallery from YouTube search results.
+* **Livestream** — auto-embed the live stream from a YouTube channel, with a custom fallback message when you're offline.
+* **Single Video** — embed a single YouTube video (or a YouTube Short).
+* **Custom Videos List** — hand-pick any list of YouTube video URLs.
 
-* Create unlimited & searchable galleries.
-* Automate your galleries using various YouTube sources like,
- * USERNAME
- * CHANNEL
- * PLAYLIST
- * SEARCH KEYWORDS
- * Custom YouTube URLs list
-* Auto Embed Live Stream from a YouTube Channel.
-* GDPR consent before the playback.
-* Gutenberg Block support.
-* Shortcode Builder for the old classic editor and other third-party page builders.
-* Sidebar Widget (Compatible with Elementor Page Builder).
-* Built-in caching for quick page loads.
-* Most importantly, a Clear & Beautiful Admin Interface.
-* [+] Hooks for Developers.
+### STANDARD (FREE) FEATURES
+
+* **Gallery Builder** — create unlimited galleries, each with its own reusable shortcode, e.g. `[automatic_youtube_gallery id="123"]`.
+* **Automatic sync** — a scheduled background import (hourly, daily, weekly, or monthly) keeps your galleries current; click "Update Gallery" anytime for an instant refresh.
+* **Video sorting** — order videos by published date, title, duration, or random, ascending or descending.
+* **YouTube Shorts filter** — filter videos by duration to show only Shorts or hide Shorts from your gallery.
+* **Exclude videos** — blacklist specific videos so they are never imported.
+* **Responsive grid layout** — up to 12 columns, adapts to any screen size and looks great on mobile.
+* **Pagination** — "Load More" button or Previous/Next pager, with translatable labels.
+* **Live search form** — let visitors search videos inside the gallery.
+* **Flexible player** — native YouTube embed or a lightweight Custom Video Player; autoplay, loop, mute, auto-advance to the next video, player color, closed captions, and player language options.
+* **16:9, 4:3, and 9:16 (Shorts / vertical)** aspect ratios for thumbnails and the player.
+* **Fast by design** — built-in API caching, videos served from your own database, lazy loading, and minified assets for quick page loads.
+* **GDPR compliant** — optional cookie consent before playback and YouTube's Privacy Enhanced Mode (youtube-nocookie.com).
+* **Gutenberg Block** — embed the YouTube gallery block right in the editor.
+* **Sidebar Widget** — works in any widget area and inside Elementor.
+* **Works with every page builder** — Elementor, Divi, WPBakery, Beaver Builder, Oxygen, and more via block, widget, or shortcode.
+* **WPML & Polylang compatible**, multisite ready.
+* Most importantly, a clear & beautiful admin interface.
+* [+] Hooks for developers to extend the plugin.
 
 ### PREMIUM FEATURES
 
-* [SEO](https://plugins360.com/automatic-youtube-gallery/deeplinking/): Deeplinking, Open Graph Tags, and Schema.org Markup (via JSON-LD).
-* [Popup Theme](https://demo.plugins360.com/automatic-youtube-gallery/theme-popup/)
-* [Inline Theme](https://demo.plugins360.com/automatic-youtube-gallery/theme-inline/)
-* [Slider Theme](https://demo.plugins360.com/automatic-youtube-gallery/theme-slider/)
-* [Playlist Theme](https://demo.plugins360.com/automatic-youtube-gallery/theme-playlister/)
+* **[SEO Suite](https://plugins360.com/automatic-youtube-gallery/deeplinking/)** — deeplinking (a unique, indexable URL for every video), Open Graph tags, Twitter cards, and Schema.org VideoObject markup (JSON-LD) for rich results in Google.
+* **[Popup Theme](https://demo.plugins360.com/automatic-youtube-gallery/theme-popup/)** — play videos in a lightbox popup.
+* **[Inline Theme](https://demo.plugins360.com/automatic-youtube-gallery/theme-inline/)** — play videos in place of the clicked thumbnail.
+* **[Slider Theme](https://demo.plugins360.com/automatic-youtube-gallery/theme-slider/)** — video carousel with customizable arrows, dots, and autoplay; also available as Slider + Popup and Slider + Inline combos.
+* **[Playlist Theme](https://demo.plugins360.com/automatic-youtube-gallery/theme-playlister/)** — a YouTube-style player with a scrollable playlist beside or below it.
+* **Popup mode for single videos** — open any single video in a lightbox from a thumbnail, custom text, or image trigger.
+
+Try every premium feature free for 7 days — no payment details required.
+
+### PERFECT FOR
+
+* YouTubers & vloggers showcasing their channel on their website.
+* Churches & non-profits embedding sermons and live streams.
+* Musicians, gamers & podcasters displaying their latest episodes.
+* Online courses & tutorial libraries organized by playlist.
+* Businesses embedding product demos, testimonials, and video portfolios.
+* Magazines & news sites curating video feeds by search keywords.
 
 ### TRANSLATION READY
 
 Do you speak another language? Want to contribute in a meaningful way to Automatic YouTube Gallery? There's no better way than to help us translate the plugin. This plugin is translation ready and you can [translate](https://plugins360.com/automatic-youtube-gallery/translate-to-your-language/) to your language easily. Once finished, please reach out to us [here](https://plugins360.com/support/) to get your language file included in the core.
 
 ### SUPPORT AND DOCUMENTATION
-	
+
 We do have [documentation](https://plugins360.com/automatic-youtube-gallery/documentation/) on the plugin.
-	
+
 Still, Having Issues? We are just an email away. Please write to us describing your issue using the "Contact" form available under our plugin's menu. You should receive a reply within 24 hours (except Sunday).
-	
+
 Also, we answer all support requests [on the WordPress.org support forum](https://wordpress.org/support/plugin/automatic-youtube-gallery/).
 
 == Installation ==
@@ -73,53 +102,89 @@ Also, we answer all support requests [on the WordPress.org support forum](https:
 4. Use the browse button to select the plugin zip file that was downloaded, and then click on Install Now.
 5. Once installed, click "Activate".
 6. Then, go to the plugin dashboard, and configure your "YouTube API Key" as per the instructions given on the page. Save the changes.
-7. That's it. Now, you can start building your galleries straight away from the plugin dashboard. 
+7. That's it. Now, you can start building your galleries straight away from the plugin dashboard.
 
 For more detailed instructions visit plugin [documentation](https://plugins360.com/automatic-youtube-gallery/documentation/).
 
 == Frequently Asked Questions ==
 
-= 1. How to get a YouTube Data API Key? =
+= 1. How do I embed a YouTube gallery on my website? =
 
-Please follow [get Youtube API](https://plugins360.com/automatic-youtube-gallery/how-to-get-youtube-api-key/) instructions.
+Create a gallery from the plugin's Gallery Builder, then place it anywhere using its shortcode — e.g. `[automatic_youtube_gallery id="123"]` — the Gutenberg block, or the sidebar widget. All three methods work with posts, pages, custom post types, and page builders.
 
-= 2. Help! My video gallery doesn't look right! =
+= 2. Do I need a YouTube API key? How do I get one? =
 
-First of all, don't worry! I promise you that we can get it looking right. This can be caused by a multitude of things, so try the following (in the order of appearance):
+Yes, a free YouTube Data API key is required to fetch your videos. It only takes a few minutes — please follow our [get YouTube API key](https://plugins360.com/automatic-youtube-gallery/how-to-get-youtube-api-key/) instructions.
 
-* Check your browser's javascript console to see if there are any errors that may be causing this issue.
-* Make sure that your WordPress theme is not including multiple versions of jQuery and is using the latest version.
-* Try disabling other plugins that are used for photo galleries, minifying scripts, widgets, or otherwise altering your site's appearance, one by one, and really determine if you need it.
+= 3. Does my gallery update automatically when I upload new videos to YouTube? =
 
-If nothing works, please describe your issue and submit a ticket on our plugin support forum, you should receive a reply within 24 hours (except Sunday).
+Yes. Choose an import schedule per gallery (hourly, daily, weekly, or monthly) and a background sync keeps it up to date automatically. Need the newest videos right away? Open the gallery and click "Update Gallery" for an instant refresh.
 
-= 3. Does the plugin support third-party page builders like "Elementor", "WPBakery", "Divi", etc.? =
+= 4. Can I show or hide YouTube Shorts in my gallery? =
+
+Yes. Each gallery has a "Filter by Duration" option — set it to "Shorter Than 60 seconds" to build a Shorts-only gallery, or "Longer Than 60 seconds" to hide Shorts. There is also a 9:16 vertical aspect ratio for Shorts thumbnails and the player.
+
+= 5. Can I embed a YouTube live stream? =
+
+Yes. Select the "Livestream" source type to auto-embed the currently live video from any YouTube channel. When the channel is not streaming, the plugin displays a customizable fallback message instead.
+
+= 6. Will the plugin slow down my website? =
+
+No. Videos are imported into your own database and served from there, API responses are cached, images and iframes are lazy-loaded, and all CSS/JS files are minified and loaded only where a gallery is present.
+
+= 7. Is the plugin GDPR compliant? =
+
+Yes. You can require cookie consent before any video is played, show a custom consent message, and enable YouTube's Privacy Enhanced Mode (youtube-nocookie.com) so no tracking cookies are set until the visitor actually plays a video.
+
+= 8. Does the plugin support third-party page builders like "Elementor", "WPBakery", "Divi", etc.? =
 
 Yes, the plugin is fully compatible with popular page builders like Elementor, WPBakery, Divi, and more.
 
 * For **Elementor**, the plugin provides a dedicated WordPress widget. You can find it under the "WordPress" tab in the Elementor editor. Simply drag and drop the widget into your design to embed your video gallery seamlessly.
-* Alternatively, for **Elementor** and other page builders, you can use the plugin's **Shortcode Builder** to generate a shortcode. Once created, you can add the shortcode to any section or module of your favorite page builder.
+* Alternatively, for **Elementor** and other page builders, you can add your gallery shortcode — e.g. `[automatic_youtube_gallery id="123"]` — to any section or module of your favorite page builder.
 
 This flexibility ensures you can integrate your video gallery effortlessly, regardless of your preferred page builder.
 
-= 4. Is the plugin compatible with WordPress Multisite? =
+= 9. Help! My video gallery doesn't look right! =
+
+First of all, don't worry! I promise you that we can get it looking right. This can be caused by a multitude of things, so try the following (in the order of appearance):
+
+* Check your browser's javascript console to see if there are any errors that may be causing this issue.
+* Try enabling the "Force Load Plugin Assets" option under the plugin settings — this resolves most conflicts caused by themes, page builders, or optimization plugins.
+* Try disabling other plugins that are used for photo galleries, minifying scripts, widgets, or otherwise altering your site's appearance, one by one, and really determine if you need it.
+
+If nothing works, please describe your issue and submit a ticket on our plugin support forum, you should receive a reply within 24 hours (except Sunday).
+
+= 10. Is the plugin compatible with WordPress Multisite? =
 
 Yes, it is. However, do not "network-activate" the plugin. Activate it only on the subsites on which you need the gallery. This can be done under "Plugins => Add New" as the Administrator user.
 
 == Screenshots ==
 
-1. Step 1: Install the Plugin
-2. Step 2: Configure the YouTube API Key
-3. Step 3: Build the Gallery
-4. Classic Theme
-5. Popup Theme
-6. Slider Theme
-7. Playlist Theme
-8. Plugin Settings
-9. Gutenberg Block
-10. Widget
+1. Classic Theme — display a responsive YouTube video gallery grid with the player and live search on top
+2. Gallery Builder — set your YouTube source & import schedule, then copy the reusable shortcode
+3. Popup Theme — play YouTube videos in a lightbox popup (Premium)
+4. Inline Theme — play videos in place of the clicked thumbnail (Premium)
+5. Slider Theme — showcase your videos in a customizable carousel: Slider, Slider + Popup & Slider + Inline (Premium)
+6. Playlist Theme — watch videos in a YouTube-style player with a scrollable playlist, right or bottom, dark or light (Premium)
+7. Plugin Settings — fine-tune the gallery, player, livestream & GDPR options
+8. Gutenberg Block — embed a YouTube gallery right in the block editor
+9. Sidebar Widget — drag & drop a YouTube gallery into Elementor or any widget area
+10. API Key Setup — configure the free YouTube Data API key in minutes
 
 == Changelog ==
+
+= 2.8.1 =
+
+* New: Introduced the Gallery Builder, which replaces the classic Shortcode Builder. Every gallery now has its own saved shortcode with a single unique ID — e.g. `[automatic_youtube_gallery id="123"]` — that you can reuse anywhere and manage from one place.
+* New: Galleries now store their videos in the plugin's own tables, unlocking new per-gallery options: order videos by published date, title, duration, or random; filter by duration to show only Shorts or hide Shorts; and exclude specific videos from the import.
+* New: Galleries are kept up to date automatically by a scheduled background sync — choose hourly, daily, weekly, or monthly per gallery, or pause it entirely. If you ever need the newest videos right away, just open the gallery and click "Update Gallery" for an instant refresh.
+* New: Gallery Builder galleries are no longer limited to 50 videos per page — set "Videos per Page" to 0 to show all videos on a single page.
+* Tweak: Your existing shortcodes, Gutenberg blocks, and widgets are fully backward compatible and continue to work exactly as before — nothing on your live site changes or needs to be rebuilt.
+* Tweak: Removed the "Show Annotations" (`iv_load_policy`) player option, as YouTube retired video annotations and the parameter no longer has any effect.
+* Tweak: Refreshed the plugin logo and admin branding.
+* Tweak: Updated Freemius SDK to version 2.13.4.
+* Fix: Various minor bug fixes and performance enhancements.
 
 = 2.7.2 =
 
@@ -136,7 +201,7 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 
 = 2.7.1 =
 
-* New: Added options to force-load the plugin's CSS (recommended) and JavaScript (advanced) across all front-end pages. This helps resolve layout or functionality issues caused by themes, page builders, or optimization plugins.
+* New: Added options to force-load the plugin's CSS and JavaScript across all front-end pages. This helps resolve layout or functionality issues caused by themes, page builders, or optimization plugins.
 * New: Added a "Shorts / Vertical (9:16)" option to the "Image Height (Ratio)" setting.
 * New: Added a "Shorts / Vertical (9:16)" option to the "Player Height (Ratio)" setting.
 * Tweak: Improved popup player behavior — the player now always fits within the viewport. Previously, it could extend beyond the visible area.
@@ -336,6 +401,6 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 
 == Upgrade Notice ==
 
-= 2.7.2 =
+= 2.8.1 =
 
-WordPress 7 Compatibility Release. [See changelog](https://wordpress.org/plugins/automatic-youtube-gallery/#developers)
+Introduces the new Gallery Builder. Your existing shortcodes, blocks, and widgets keep working unchanged — nothing on your site needs to be rebuilt. Galleries now update automatically; click "Update Gallery" anytime for an instant refresh.

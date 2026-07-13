@@ -17,8 +17,13 @@ $params = array(
     'post_id'              => (int) $attributes['post_id'],
     'type'                 => $source_type,
     'src'                  => sanitize_text_field( $attributes[ $source_type ] ),
-    'order'                => sanitize_text_field( $attributes['order'] ), // Works only when type = "search".
-    'limit'                => (int) $attributes['limit'], // Works only when type = "search".
+    'order'                => sanitize_text_field( $attributes['order'] ),                                                     // Works only when type = "search".
+    'sort_by'              => ! empty( $attributes['sort_by'] ) ? sanitize_key( $attributes['sort_by'] ) : 'date',             // Works only when type = "db".
+    'sort_order'           => ! empty( $attributes['sort_order'] ) ? sanitize_key( $attributes['sort_order'] ) : 'desc',       // Works only when type = "db".
+    'sort_seed'            => ! empty( $attributes['sort_seed'] ) ? (int) $attributes['sort_seed'] : 0,                        // Works only when type = "db" + sort_by = "random".
+    'duration_filter'      => ! empty( $attributes['duration_filter'] ) ? sanitize_key( $attributes['duration_filter'] ) : '', // Works only when type = "db".
+    'duration'             => ! empty( $attributes['duration'] ) ? (int) $attributes['duration'] : 0,                          // Works only when type = "db".
+    'limit'                => (int) $attributes['limit'],                                                                      // Works only when type = "search".
     'per_page'             => (int) $attributes['per_page'],
     'cache'                => (int) $attributes['cache'],
     'columns'              => ! empty( $attributes['columns'] ) ? (int) $attributes['columns'] : 1,

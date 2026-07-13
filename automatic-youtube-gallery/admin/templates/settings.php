@@ -30,6 +30,8 @@ foreach ( $this->sections as $section ) {
 ?>
 
 <div id="ayg-settings" class="ayg ayg-settings theme-<?php echo esc_attr( $active_theme ); ?> player_type-<?php echo esc_attr( $player_type ); ?> wrap">
+    <h1><?php esc_html_e( 'Plugin Settings', 'automatic-youtube-gallery' ); ?></h1>
+
     <?php settings_errors(); ?>
 
     <h2 class="nav-tab-wrapper wp-clearfix">
@@ -85,7 +87,7 @@ foreach ( $this->sections as $section ) {
 	}
 
 	if ( count( $section_links ) > 1 ) : ?>
-		<ul class="ayg-margin-bottom subsubsub"><li><?php echo implode( ' | </li><li>', $section_links ); ?></li></ul>
+		<ul class="subsubsub"><li><?php echo implode( ' | </li><li>', $section_links ); ?></li></ul>
 		<div class="clear"></div>
 	<?php endif; ?>
     
@@ -98,15 +100,18 @@ foreach ( $this->sections as $section ) {
         ?>
 
         <?php if ( 'general' == $active_tab && 'ayg_general_settings' == $active_section ) : ?>
-            <table id="ayg-table-delete-cache" class="form-table">
+            <table id="ayg-table-delete-cache" class="ayg-form form-table">
                 <tbody>
                     <tr>
                         <th scope="row">
                             <label><?php esc_html_e( 'Delete Cache', 'automatic-youtube-gallery' ); ?></label>
                         </th>
                         <td>
-                            <input type="submit" id="ayg-button-delete-cache" class="button-secondary" value="<?php esc_attr_e( 'Delete Cache', 'automatic-youtube-gallery' ); ?>" />
-                            <span class="ayg-ajax-status"></span>
+                            <div class="ayg-form-actions">
+                                <input type="submit" id="ayg-button-delete-cache" class="button-secondary" value="<?php esc_attr_e( 'Delete Cache', 'automatic-youtube-gallery' ); ?>" />
+                                <span class="ayg-form-status"></span>
+                            </div>
+
                             <p class="description"><?php esc_html_e( 'Delete all of the YouTube API data cached by the plugin.', 'automatic-youtube-gallery' ); ?></p>
                         </td>
                     </tr>

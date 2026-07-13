@@ -8,27 +8,40 @@
  *
  * @package Automatic_YouTube_Gallery
  */
+
+// Exit if accessed directly
+if ( ! defined( 'WPINC' ) ) {
+	die;
+}
 ?>
 
-<p class="about-description"><?php esc_html_e( 'You must create an API Key to build dynamic galleries from YouTube.', 'automatic-youtube-gallery' ); ?></p>
+<div class="ayg-form ayg-card">
+	<div class="ayg-form-controls">
+		<h2 class="ayg-no-margin">
+			<?php esc_html_e( 'Connect your YouTube API key', 'automatic-youtube-gallery' ); ?> 
+			<span class="ayg-form-required" aria-hidden="true">*</span>
+		</h2>
 
-<table id="ayg-table-api-key" class="form-table">
-  <tr>
-    <th scope="row">
-      <label for="ayg-api-key"><?php esc_html_e( 'Youtube API Key', 'automatic-youtube-gallery' ); ?></label>
-    </th>
-    <td>
-      <input type="text" class="regular-text" id="ayg-api-key" value="" />
-      <input type="button" id="ayg-button-save-api-key" class="button-primary" value="<?php esc_attr_e( 'Proceed', 'automatic-youtube-gallery' ); ?>" />  
-      <span class="ayg-ajax-status"></span>      
-      <p class="description">
-        <?php
-        printf( 
-          __( 'Follow <a href="%s" target="_blank" rel="noopener noreferrer">this guide</a> to get your own API key.', 'automatic-youtube-gallery' ),  
-          'https://plugins360.com/automatic-youtube-gallery/how-to-get-youtube-api-key/' 
-        );
-        ?>
-      </p>
-    </td>
-  </tr>
-</table>
+		<div class="ayg-form-control">
+			<input type="text" id="ayg-form-field-api-key" class="ayg-form-field ayg-form-field-api-key widefat" value="" placeholder="<?php esc_attr_e( 'Enter your YouTube API key', 'automatic-youtube-gallery' ); ?>" aria-label="<?php esc_attr_e( 'YouTube API Key', 'automatic-youtube-gallery' ); ?>" autofocus>
+
+			<span class="ayg-form-status"></span>
+
+			<p class="description">
+				<?php
+				printf(
+					__( 'A free YouTube Data API key is required to fetch your videos. <a href="%s" target="_blank" rel="noopener noreferrer">Get your API key</a> in just a few minutes.', 'automatic-youtube-gallery' ),
+					'https://plugins360.com/automatic-youtube-gallery/how-to-get-youtube-api-key/'
+				);
+				?>
+			</p>
+		</div>
+
+		<div class="ayg-form-actions">
+			<button type="button" id="ayg-button-save-api-key" class="ayg-button button button-primary button-hero">
+				<?php esc_html_e( 'Proceed', 'automatic-youtube-gallery' ); ?>
+			</button>
+			<span class="ayg-form-status"></span>
+		</div>
+	</div>
+</div>

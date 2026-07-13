@@ -80,32 +80,28 @@ class AYG_Widget extends WP_Widget {
 	 */
 	public function update( $new_instance, $old_instance ) {
 		$instance = array();
-
 		$instance['title'] = isset( $new_instance['title'] ) ? strip_tags( $new_instance['title'] ) : '';
 
 		$fields = ayg_get_editor_fields();
 
-		foreach ( $fields as $key => $value ) {
-			foreach ( $value['fields'] as $field ) {
-				$field_name = $field['name'];
-				$field_type = $field['type'];
+		foreach ( $fields as $section ) {
+			foreach ( $section['fields'] as $field ) {
+				$name = $field['name'];
 
-				if ( 'number' == $field_type ) {
-					if ( ! empty( $new_instance[ $field_name ] ) ) {
-						$instance[ $field_name ] = false === strpos( $new_instance[ $field_name ], '.' ) ? (int) $new_instance[ $field_name ] : (float) $new_instance[ $field_name ];
-					} else {
-						$instance[ $field_name ] = 0;
-					}
-				} elseif ( 'checkbox' == $field_type ) {
-					$instance[ $field_name ] = isset( $new_instance[ $field_name ] ) ? (int) $new_instance[ $field_name ] : 0;
-				} elseif ( 'textarea' == $field_type ) {
-					$instance[ $field_name ] = ! empty( $new_instance[ $field_name ] ) ? sanitize_textarea_field( $new_instance[ $field_name ] ) : '';
+				if ( 'checkbox' === $field['type'] ) {
+					$instance[ $name ] = ! empty( $new_instance[ $name ] ) ? 1 : 0;
+				} elseif ( ! isset( $new_instance[ $name ] ) ) {
+					continue;
+				} elseif ( 'select' === $field['type'] && isset( $field['options'] ) ) {
+					$raw = sanitize_text_field( $new_instance[ $name ] );
+					$instance[ $name ] = array_key_exists( $raw, $field['options'] ) ? $raw : sanitize_text_field( $field['value'] );
 				} else {
-					$instance[ $field_name ] = ! empty( $new_instance[ $field_name ] ) ? sanitize_text_field( $new_instance[ $field_name ] ) : '';
+					$sanitize_callback = ! empty( $field['sanitize_callback'] ) ? $field['sanitize_callback'] : 'sanitize_text_field';
+					$instance[ $name ] = call_user_func( $sanitize_callback, $new_instance[ $name ] );
 				}
 			}
 		}
-		
+
 		return $instance;
 	}
 

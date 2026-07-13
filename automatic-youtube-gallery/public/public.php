@@ -65,6 +65,15 @@ class AYG_Public {
 		$privacy_settings = ayg_get_option( 'ayg_privacy_settings' );
 		$strings_settings = ayg_get_option( 'ayg_strings_settings' );
 
+		$player_type = isset( $player_settings['player_type'] ) ? sanitize_text_field( $player_settings['player_type'] ) : 'youtube';
+
+		// YouTube rejects embeds rendered inside wp-admin with "Error 153" (missing/unacceptable
+		// referrer). Force the Plyr.js player in editor previews so the poster image is shown
+		// instead of the failed native embed. Front-end output is unaffected.
+		if ( is_admin() ) {
+			$player_type = 'custom';
+		}
+		
 		$scroll_top_offset = ( isset( $gallery_settings['scroll_top_offset'] ) && ! empty( $gallery_settings['scroll_top_offset'] ) ) ? (int) $gallery_settings['scroll_top_offset'] : 10;
 		$scroll_top_offset = apply_filters( 'ayg_gallery_scrolltop_offset', $scroll_top_offset ); // Backward compatibility to 2.4.3
 		$scroll_top_offset = apply_filters( 'ayg_gallery_scroll_top_offset', $scroll_top_offset );
@@ -79,7 +88,7 @@ class AYG_Public {
 			'ajax_nonce'            => wp_create_nonce( 'ayg_ajax_nonce' ),	
 			'current_page_url'      => get_permalink(),
 			'current_gallery_id'    => get_query_var( 'ayg_gallery_id' ),					
-			'player_type'           => isset( $player_settings['player_type'] ) ? sanitize_text_field( $player_settings['player_type'] ) : 'youtube',
+			'player_type'           => $player_type,
 			'player_color'          => isset( $player_settings['player_color'] ) ? sanitize_text_field( $player_settings['player_color'] ) : '#00b3ff',	
 			'privacy_enhanced_mode' => isset( $player_settings['privacy_enhanced_mode'] ) ? (int) $player_settings['privacy_enhanced_mode'] : 0,
 			'origin'                => '',
@@ -220,14 +229,20 @@ class AYG_Public {
 		$source_type = $attributes['type'];
 
 		$api_params = array(
-			'uid'        => $attributes['uid'],
-			'type'       => $source_type,
-			'src'        => $attributes['src'],
-			'order'      => $attributes['order'], // works only when type=search
-			'limit'      => (int) $attributes['limit'],
-			'maxResults' => (int) $attributes['per_page'],
-			'cache'      => (int) $attributes['cache'],
-			'pageToken'  => $attributes['pageToken']
+			'uid'               => $attributes['uid'],
+			'type'              => $source_type,
+			'src'               => $attributes['src'],
+			'featured_video_id' => isset( $attributes['featured_video_id'] ) ? $attributes['featured_video_id'] : '', // Works only when type=db (deeplinked video pinned first)
+			'order'             => $attributes['order'],                                                                // Works only when type=search
+			'sort_by'           => isset( $attributes['sort_by'] ) ? $attributes['sort_by'] : 'date',                   // Works only when type=db
+			'sort_order'        => isset( $attributes['sort_order'] ) ? $attributes['sort_order'] : 'desc',             // Works only when type=db
+			'sort_seed'         => isset( $attributes['sort_seed'] ) ? (int) $attributes['sort_seed'] : 0,              // Works only when type=db + sort_by=random
+			'duration_filter'   => isset( $attributes['duration_filter'] ) ? $attributes['duration_filter'] : '',       // Works only when type=db
+			'duration'          => isset( $attributes['duration'] ) ? (int) $attributes['duration'] : 0,                // Works only when type=db
+			'limit'             => (int) $attributes['limit'],
+			'maxResults'        => (int) $attributes['per_page'],
+			'cache'             => (int) $attributes['cache'],
+			'pageToken'         => $attributes['pageToken']
 		);
 
 		if ( ! empty( $attributes['searchTerm'] ) ) {

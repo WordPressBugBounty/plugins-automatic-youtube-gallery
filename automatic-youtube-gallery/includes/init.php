@@ -81,9 +81,14 @@ class AYG_Init {
 		require_once AYG_DIR . 'includes/functions.php';
 
 		/**
+		 * The class responsible for importing videos into the Gallery Builder galleries.
+		 */
+		require_once AYG_DIR . 'includes/import.php';
+
+		/**
 		 * The classes responsible for defining all actions that occur in the admin area.
 		 */
-		require_once AYG_DIR . 'admin/admin.php';	
+		require_once AYG_DIR . 'admin/admin.php';
 		require_once AYG_DIR . 'admin/settings.php';
 
 		/**
@@ -139,6 +144,9 @@ class AYG_Init {
 		$this->loader->add_action( 'admin_menu', $admin, 'admin_menu' );
 		$this->loader->add_action( 'admin_notices', $admin, 'admin_notices' );
 		$this->loader->add_action( 'wp_ajax_ayg_save_api_key', $admin, 'ajax_callback_save_api_key' );
+		$this->loader->add_action( 'wp_ajax_ayg_save_gallery', $admin, 'ajax_callback_save_gallery' );
+		$this->loader->add_action( 'wp_ajax_ayg_import_gallery', $admin, 'ajax_callback_import_gallery' );
+		$this->loader->add_action( 'wp_ajax_ayg_delete_gallery', $admin, 'ajax_callback_delete_gallery' );
 		
 		$this->loader->add_filter( 'plugin_action_links_' . AYG_FILE_NAME, $admin, 'plugin_action_links' );
 
@@ -177,7 +185,7 @@ class AYG_Init {
 		$cron = new AYG_Public_Cron();
 
 		$this->loader->add_action( 'wp', $cron, 'schedule_events' );
-		$this->loader->add_action( 'ayg_schedule_weekly', $cron, 'cron_event' );
+		$this->loader->add_action( 'ayg_cron_schedule', $cron, 'cron_event' );
 
 		$this->loader->add_filter( 'cron_schedules', $cron, 'cron_schedules' );
 	}

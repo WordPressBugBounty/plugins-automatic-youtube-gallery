@@ -28,13 +28,22 @@ function ayg_build_gallery( $args ) {
 	global $post;
 
 	// Vars
-	$fields = ayg_get_editor_fields();
-	$excluded_fields = array( 'popup' ); // Fields not part of attributes
-	$defaults = array();
+	$fields   = ayg_get_editor_fields();
+	$excluded = array( 'popup' ); // Fields not part of attributes
+
+	// Defaults not backed by an editor field (kept through shortcode_atts): internal "db" source + sort.
+	$defaults = array(
+		'db'              => '',
+		'sort_by'         => 'date',
+		'sort_order'      => 'desc',
+		'sort_seed'       => '',
+		'duration_filter' => '',
+		'duration'        => 0
+	);
 
 	foreach ( $fields as $key => $value ) {
 		foreach ( $value['fields'] as $field ) {
-			if ( in_array( $field['name'], $excluded_fields ) ) {
+			if ( in_array( $field['name'], $excluded ) ) {
 				continue;
 			}
 
@@ -43,6 +52,54 @@ function ayg_build_gallery( $args ) {
 	}
 
 	$defaults = array_merge( $defaults, (array) $strings_settings );
+
+	// Gallery Builder mode: a numeric "id" loads the saved gallery config, layers its saved
+	// settings under $args (shortcode attributes still win, except the source), and switches
+	// the source to the internal "db" type so the existing build pipeline serves it from the DB.
+	if ( isset( $args['id'] ) && is_numeric( $args['id'] ) && (int) $args['id'] > 0 ) {
+		$config = ayg_get_gallery( (int) $args['id'] );
+
+		if ( ! $config ) {
+			return sprintf( '<div class="ayg ayg-error">%s</div>', esc_html__( 'Gallery not found.', 'automatic-youtube-gallery' ) );
+		}
+
+		$config_params = json_decode( (string) $config->params, true );
+		if ( ! is_array( $config_params ) ) {
+			$config_params = array();
+		}
+
+		// Saved settings act as defaults; explicit shortcode attributes override them.
+		$args = array_merge( $config_params, $args );
+
+		// The source always comes from the config and can't be overridden by the shortcode.
+		// Livestream and search query the live API at display time (nothing is imported/stored);
+		// everything else renders from the DB.
+		if ( 'livestream' === $config->source_type ) {
+			$args['type']    = 'livestream';
+			$args['channel'] = $config->source_value;
+		} elseif ( 'search' === $config->source_type ) {
+			$args['type']   = 'search';
+			$args['search'] = $config->source_value;
+		} elseif ( 'video' === $config->source_type ) {
+			// A single video renders live from the API (like search / livestream) — nothing is
+			// imported or stored — so serve it through the live 'video' source type.
+			$args['type']  = 'video';
+			$args['video'] = $config->source_value;
+		} else {
+			$args['type'] = 'db';
+			$args['db']   = strval( $config->id );
+		}
+
+		// Single video + popup mode → force the popup theme, mirroring the block and widget (which
+		// apply this before calling ayg_build_gallery()).
+		if ( 'video' === $config->source_type && ! empty( $args['popup'] ) ) {
+			$args['theme'] = 'popup';
+		}
+
+		// Gallery Builder relationships are keyed by the config ID as a string.
+		$args['uid'] = strval( $config->id );
+	}
+
 	$attributes = shortcode_atts( $defaults, $args, 'automatic_youtube_gallery' );
 
 	$attributes['post_id'] = 0;
@@ -60,12 +117,20 @@ function ayg_build_gallery( $args ) {
 		$attributes['limit'] = 500;
 	}
 	
-	$attributes['per_page'] = min( 50, (int) $attributes['per_page'] );
-	if ( empty( $attributes['per_page'] ) ) {
-		$attributes['per_page'] = 50;
+	$source_type = sanitize_text_field( $attributes['type'] );
+
+	// Videos per page. Database (Gallery Builder) galleries read from our own table, so 0 means
+	// "show all videos on a single page" (no pagination). The live-API sources (search, livestream)
+	// stay capped at 50 because that is YouTube's maximum number of results per request.
+	if ( 'db' === $source_type ) {
+		$attributes['per_page'] = max( 0, (int) $attributes['per_page'] );
+	} else {
+		$attributes['per_page'] = min( 50, (int) $attributes['per_page'] );
+		if ( empty( $attributes['per_page'] ) ) {
+			$attributes['per_page'] = 50;
+		}
 	}
 
-	$source_type = sanitize_text_field( $attributes['type'] );
 	if ( 'livestream' == $source_type ) {
 		$attributes['livestream'] = $attributes['channel'];
 	}
@@ -76,6 +141,10 @@ function ayg_build_gallery( $args ) {
 	}
 
 	$source_url = sanitize_text_field( $attributes[ $source_type ] );	
+
+	if ( isset( $args['id'] ) && ! empty( $args['id'] ) ) {
+		$attributes['id'] = absint( $args['id'] );
+	}
 
 	if ( isset( $args['uid'] ) && ! empty( $args['uid'] ) ) {
 		$attributes['uid'] = sanitize_text_field( $args['uid'] );
@@ -91,15 +160,44 @@ function ayg_build_gallery( $args ) {
 		$deprecated_uid = sanitize_text_field( $args['deprecated_uid'] );
 	}
 
+	// Deeplinked video (premium): resolve before the query so DB-served galleries can pin it as
+	// the first item at the SQL level, keeping the per-page count exact. API-served (legacy)
+	// galleries keep the old prepend behavior below.
+	$gallery_id_from_url = get_query_var( 'ayg_gallery_id' );
+	$video_id_from_url   = get_query_var( 'ayg_video_id' );
+	$deeplinked_video    = false;
+
+	if ( ! empty( $video_id_from_url ) && ( $attributes['uid'] == $gallery_id_from_url || $deprecated_uid == $gallery_id_from_url ) ) {
+		$deeplinked_video = ayg_db_get_video( $video_id_from_url );
+	}
+
+	if ( ! $deeplinked_video ) {
+		$video_id_from_url = '';
+	}
+
+	$featured_video_id = ( 'db' === $source_type && ! empty( $video_id_from_url ) ) ? sanitize_text_field( $video_id_from_url ) : '';
+
+	// Random ordering: generate a per-render seed (once) so RAND(seed) stays stable across this
+	// gallery's own pagination/search AJAX calls. A seed hardcoded in the shortcode is respected.
+	if ( 'random' === $attributes['sort_by'] && empty( $attributes['sort_seed'] ) ) {
+		$attributes['sort_seed'] = wp_rand( 1, 2147483647 );
+	}
+	
 	// Get Videos
 	$api_params = array(
-		'uid'        => $attributes['uid'],
-		'type'       => $source_type,
-		'src'        => $source_url,
-		'order'      => sanitize_text_field( $attributes['order'] ), // Works only when type = "search".
-		'limit'      => $attributes['limit'], // Works only when type = "search".
-		'maxResults' => $attributes['per_page'],
-		'cache'      => (int) $attributes['cache']
+		'uid'               => $attributes['uid'],
+		'type'              => $source_type,
+		'src'               => $source_url,
+		'featured_video_id' => $featured_video_id,                             // Works only when type = "db".
+		'order'             => sanitize_text_field( $attributes['order'] ),    // Works only when type = "search".
+		'sort_by'           => sanitize_key( $attributes['sort_by'] ),         // Works only when type = "db".
+		'sort_order'        => sanitize_key( $attributes['sort_order'] ),      // Works only when type = "db".
+		'sort_seed'         => absint( $attributes['sort_seed'] ),             // Works only when type = "db" + sort_by = "random".
+		'duration_filter'   => sanitize_key( $attributes['duration_filter'] ), // Works only when type = "db".
+		'duration'          => absint( $attributes['duration'] ),              // Works only when type = "db".
+		'limit'             => $attributes['limit'],                           // Works only when type = "search".
+		'maxResults'        => $attributes['per_page'],
+		'cache'             => (int) $attributes['cache']
 	);
 
 	$api_params = apply_filters( 'ayg_youtube_api_request_params', $api_params, $args );
@@ -121,23 +219,22 @@ function ayg_build_gallery( $args ) {
 		}
 		
 		// Gallery
-		$videos = array();		
+		$videos = array();
 
-		$gallery_id_from_url = get_query_var( 'ayg_gallery_id' );	
-		$video_id_from_url   = get_query_var( 'ayg_video_id' );	
+		if ( ! empty( $video_id_from_url ) ) {
+			// DB-served galleries pin the deeplinked video via the SQL query itself, so the result
+			// set already starts with it. Fall back to prepending it only when the pin couldn't
+			// apply: API-served (legacy) sources, or the video is no longer part of this gallery's
+			// result set (removed from the gallery, or excluded by a duration filter).
+			$is_pinned_by_sql = ! empty( $api_params['featured_video_id'] )	&& ! empty( $response->videos )	&& $response->videos[0]->id == $video_id_from_url;
 
-		if ( $attributes['uid'] == $gallery_id_from_url || $deprecated_uid == $gallery_id_from_url ) {
-			$video = ayg_db_get_video( $video_id_from_url );		
-
-			if ( $video ) {
-				$videos[] = $video;
-			} else {
-				$video_id_from_url = '';
+			if ( ! $is_pinned_by_sql ) {
+				$videos[] = $deeplinked_video;
 			}
 		}
-		
+
 		if ( isset( $response->videos ) ) {
-			if ( ! empty( $video_id_from_url ) ) {
+			if ( ! empty( $videos ) ) {
 				foreach ( $response->videos as $video ) {
 					if ( $video->id != $video_id_from_url ) {
 						$videos[] = $video;
@@ -214,66 +311,180 @@ function ayg_db_create_custom_tables() {
 
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	$charset_collate = $wpdb->get_charset_collate();
-	
+
 	$videos_table = $wpdb->prefix . 'ayg_videos';
+	$rel_table    = $wpdb->prefix . 'ayg_gallery_relationships';
+	$old_table    = $wpdb->prefix . 'ayg_galleries';
 
-	// Check if the videos table exists
-	$query = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $videos_table ) );
+	// Rename wp_ayg_galleries (old pivot) → wp_ayg_gallery_relationships.
+	// Guard: only when the old table exists AND the new name does not yet exist AND
+	// the old table is the pivot (identified by having a video_id column).
+	$old_exists    = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $old_table ) ) ) === $old_table;
+	$new_not_exist = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $rel_table ) ) ) !== $rel_table;
 
-	if ( $wpdb->get_var( $query ) === $videos_table ) {
-		// Find and remove duplicate video IDs
+	if ( $old_exists && $new_not_exist ) {
+		$is_old_pivot = ! empty( $wpdb->get_results( "SHOW COLUMNS FROM `$old_table` LIKE 'video_id'" ) );
+
+		if ( $is_old_pivot ) {
+			$renamed = $wpdb->query( "RENAME TABLE `$old_table` TO `$rel_table`" );
+
+			if ( false === $renamed ) {
+				// Rename failed (insufficient DB privilege on some hosts).
+				// This table holds auto-generated cache data, not user content — safe to drop.
+				$wpdb->query( "DROP TABLE IF EXISTS `$old_table`" );
+			}
+		}
+	}
+
+	// Rename columns in wp_ayg_videos (NUM → id, id → video_id).
+	// Each ALTER is guarded so the block is idempotent on re-runs.
+	$videos_table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $videos_table ) ) ) === $videos_table;
+
+	if ( $videos_table_exists ) {
+		// Rename 'id' → 'video_id' first. Must happen before NUM → id to avoid a duplicate
+		// column name error: if NUM were renamed to 'id' while the varchar 'id' still exists,
+		// MySQL would reject it with "Duplicate column name 'id'".
+		$old_id_col = $wpdb->get_row( "SHOW COLUMNS FROM `$videos_table` LIKE 'id'" );
+
+		if ( $old_id_col && false !== strpos( strtolower( $old_id_col->Type ), 'varchar' ) ) {
+			$wpdb->query( "ALTER TABLE `$videos_table` CHANGE `id` `video_id` varchar(100) NOT NULL" );
+		}
+
+		// Now safe to rename NUM → id (no column named 'id' exists at this point).
+		$has_num = ! empty( $wpdb->get_results( "SHOW COLUMNS FROM `$videos_table` LIKE 'NUM'" ) );
+
+		if ( $has_num ) {
+			$wpdb->query( "ALTER TABLE `$videos_table` CHANGE `NUM` `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT" );
+		}
+
+		// Remove duplicate rows using the new column names (idempotent).
 		$wpdb->query(
 			"DELETE v1 FROM $videos_table v1
 			INNER JOIN $videos_table v2
-			ON v1.id = v2.id AND v1.NUM > v2.NUM"
+			ON v1.video_id = v2.video_id AND v1.id > v2.id"
 		);
 	}
 
-	// Create the videos table
+	// Create/update wp_ayg_videos — dbDelta adds the 2 new columns on existing installs.
 	$sql = "CREATE TABLE $videos_table (
-		NUM bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-		id varchar(100) NOT NULL,
+		id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+		video_id varchar(100) NOT NULL,
 		title text NOT NULL,
 		description text NOT NULL,
 		thumbnails text NOT NULL,
 		duration varchar(25) NOT NULL,
+		duration_seconds int(11) UNSIGNED NOT NULL DEFAULT 0,
+		video_type varchar(20) NOT NULL DEFAULT 'none',
 		status varchar(100) NOT NULL,
 		published_at varchar(100) NOT NULL,
 		published_at_datetime datetime NULL,
-		PRIMARY KEY  (NUM),
-		UNIQUE KEY ayg_unique_video_id (id),
+		PRIMARY KEY  (id),
+		UNIQUE KEY ayg_unique_video_id (video_id),
 		INDEX ayg_idx_published_at_datetime (published_at_datetime)
 	) $charset_collate;";
 
 	dbDelta( $sql );
 
-	// Add UNIQUE KEY if it is not added
+	// Fallback: add UNIQUE KEY if dbDelta did not create it (edge case on existing installs).
 	$existing_keys = $wpdb->get_results( "SHOW KEYS FROM $videos_table WHERE Key_name = 'ayg_unique_video_id'" );
-
+	
 	if ( empty( $existing_keys ) ) {
-		$wpdb->query( "ALTER TABLE $videos_table ADD UNIQUE KEY ayg_unique_video_id (id)" );
+		$wpdb->query( "ALTER TABLE $videos_table ADD UNIQUE KEY ayg_unique_video_id (video_id)" );
 	}
 
-	// Add INDEX on published_at_datetime if it is not added (existing installs)
+	// Fallback: add INDEX on published_at_datetime if missing (existing installs).
 	$existing_dt_index = $wpdb->get_results( "SHOW KEYS FROM $videos_table WHERE Key_name = 'ayg_idx_published_at_datetime'" );
-
+	
 	if ( empty( $existing_dt_index ) ) {
 		$wpdb->query( "ALTER TABLE $videos_table ADD INDEX ayg_idx_published_at_datetime (published_at_datetime)" );
 	}
 
-	// Create the galleries table
-	$galleries_table = $wpdb->prefix . 'ayg_galleries';
+	// Rename NUM → id in wp_ayg_gallery_relationships (only if rename succeeded above).
+	// If the table was recreated fresh by dbDelta below, it already has 'id' — no ALTER needed.
+	$rel_table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $rel_table ) ) ) === $rel_table;
 
-	$sql = "CREATE TABLE $galleries_table (
-		NUM bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	if ( $rel_table_exists ) {
+		$has_num_in_rel = ! empty( $wpdb->get_results( "SHOW COLUMNS FROM `$rel_table` LIKE 'NUM'" ) );
+		
+		if ( $has_num_in_rel ) {
+			$wpdb->query( "ALTER TABLE `$rel_table` CHANGE `NUM` `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT" );
+		}
+	}
+
+	// Create/update wp_ayg_gallery_relationships (fresh creation if the rename fallback dropped the old table).
+	$sql = "CREATE TABLE $rel_table (
+		id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 		video_id varchar(100) NOT NULL,
 		gallery_id varchar(100) NOT NULL,
-		PRIMARY KEY  (NUM),
+		synced_at datetime NULL,
+		PRIMARY KEY  (id),
 		UNIQUE KEY ayg_unique_video_gallery (video_id, gallery_id),
 		INDEX ayg_idx_gallery_id (gallery_id)
 	) $charset_collate;";
 
 	dbDelta( $sql );
+
+	// Fallback: add the synced_at column if dbDelta did not (existing installs).
+	$has_synced_at = ! empty( $wpdb->get_results( "SHOW COLUMNS FROM `$rel_table` LIKE 'synced_at'" ) );
+
+	if ( ! $has_synced_at ) {
+		$wpdb->query( "ALTER TABLE `$rel_table` ADD `synced_at` datetime NULL" );
+	}
+
+	// Create new wp_ayg_galleries entity table (one row per saved gallery config).
+	$galleries_table = $wpdb->prefix . 'ayg_galleries';
+
+	$sql = "CREATE TABLE $galleries_table (
+		id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+		title text NOT NULL,
+		source_type varchar(50) NOT NULL DEFAULT 'channel',
+		source_value text NOT NULL,
+		params longtext NOT NULL,
+		import_status varchar(20) NOT NULL DEFAULT 'idle',
+		import_error text NULL,
+		import_log longtext NULL,
+		last_imported_at datetime NULL,
+		next_import_at datetime NULL,
+		video_count int(11) UNSIGNED NOT NULL DEFAULT 0,
+		created_at datetime NOT NULL,
+		updated_at datetime NOT NULL,
+		PRIMARY KEY  (id),
+		INDEX idx_import (next_import_at, import_status)
+	) $charset_collate;";
+
+	dbDelta( $sql );
+}
+
+/**
+ * Get a single video record from our custom database table "{$wpdb->prefix}ayg_videos" 
+ *
+ * @since  2.1.0
+ * @param  string $video_id YouTube Video ID.
+ * @return mixed
+ */
+function ayg_db_get_video( $video_id ) {
+	global $wpdb;
+
+	$cache_key = 'ayg_'. $video_id;
+	$row = wp_cache_get( $cache_key );
+
+	if ( false === $row ) {
+		$query = $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}ayg_videos WHERE video_id = %s", $video_id );
+		$row = $wpdb->get_row( $query );
+
+		if ( $row ) {
+			if ( ! empty( $row->thumbnails ) ) {
+				$row->thumbnails = unserialize( $row->thumbnails );
+			}
+
+			// Backward compat: templates reference $video->id as the YouTube video ID.
+			$row->id = $row->video_id;
+
+			wp_cache_set( $cache_key, $row );
+		}
+	}
+
+	return $row;
 }
 
 /**
@@ -301,10 +512,16 @@ function ayg_db_store_videos( $data, $attributes = array() ) {
 	$items                = $data->items;
 	$gallery_id           = isset( $attributes['uid'] ) ? $attributes['uid'] : '';
 	$source_type          = isset( $attributes['type'] ) ? $attributes['type'] : 'videos';
-	$store_gallery        = ! empty( $gallery_id ) && ! in_array( $source_type, array( 'video', 'livestream' ) );
+	$store_gallery        = ! empty( $gallery_id ) && 'livestream' !== $source_type;
+	$exclude              = ( isset( $attributes['exclude'] ) && is_array( $attributes['exclude'] ) ) ? $attributes['exclude'] : array();
+
+	// Only videos.list responses carry contentDetails.duration and snippet.liveBroadcastContent.
+	// For other responses (playlistItems.list, search.list) the duration_seconds / video_type
+	// columns are left out entirely so existing values are never clobbered with defaults.
+	$has_video_details    = isset( $data->kind ) && 'youtube#videoListResponse' === $data->kind;
 
 	$videos_table         = $wpdb->prefix . 'ayg_videos';
-	$galleries_table      = $wpdb->prefix . 'ayg_galleries';
+	$galleries_table      = $wpdb->prefix . 'ayg_gallery_relationships';
 
 	$video_placeholders   = array();
 	$video_values         = array();
@@ -315,19 +532,24 @@ function ayg_db_store_videos( $data, $attributes = array() ) {
 		$row = array();
 
 		// Video ID
-		$row['id'] = '';
+		$row['video_id'] = '';
 
 		if ( isset( $item->snippet->resourceId ) && isset( $item->snippet->resourceId->videoId ) ) {
-			$row['id'] = $item->snippet->resourceId->videoId;
+			$row['video_id'] = $item->snippet->resourceId->videoId;
 		} elseif ( isset( $item->contentDetails ) && isset( $item->contentDetails->videoId ) ) {
-			$row['id'] = $item->contentDetails->videoId;
+			$row['video_id'] = $item->contentDetails->videoId;
 		} elseif ( isset( $item->id ) && isset( $item->id->videoId ) ) {
-			$row['id'] = $item->id->videoId;
+			$row['video_id'] = $item->id->videoId;
 		} elseif ( isset( $item->id ) ) {
-			$row['id'] = $item->id;
+			$row['video_id'] = $item->id;
 		}
 
-		if ( empty( $row['id'] ) ) {
+		if ( empty( $row['video_id'] ) ) {
+			continue;
+		}
+
+		// Skip videos on the gallery's exclude list (kept out of both tables)
+		if ( ayg_is_video_excluded( $row['video_id'], $exclude ) ) {
 			continue;
 		}
 
@@ -347,6 +569,17 @@ function ayg_db_store_videos( $data, $attributes = array() ) {
 		$row['duration'] = '';
 		if ( isset( $item->contentDetails ) && isset( $item->contentDetails->duration ) ) {
 			$row['duration'] = $item->contentDetails->duration;
+		}
+
+		if ( $has_video_details ) {
+			$row['duration_seconds'] = ayg_parse_duration_seconds( $row['duration'] );
+
+			// Raw liveBroadcastContent value ('live', 'upcoming', 'none'); shorts are not
+			// classified at import time — filter by duration_seconds <= 60 at query time.
+			$row['video_type'] = 'none';
+			if ( ! empty( $item->snippet->liveBroadcastContent ) ) {
+				$row['video_type'] = $item->snippet->liveBroadcastContent;
+			}
 		}
 
 		// Video status
@@ -371,42 +604,76 @@ function ayg_db_store_videos( $data, $attributes = array() ) {
 		$row['published_at_datetime'] = date_format( $datetime, 'Y-m-d H:i:s' );
 
 		// Collect for bulk insert
-		$video_placeholders[] = '(%s, %s, %s, %s, %s, %s, %s, %s)';
-		
-		array_push(
-			$video_values,
-			$row['id'],
-			$row['title'],
-			$row['description'],
-			$row['thumbnails'],
-			$row['duration'],
-			$row['status'],
-			$row['published_at'],
-			$row['published_at_datetime']
-		);
+		if ( $has_video_details ) {
+			$video_placeholders[] = '(%s, %s, %s, %s, %s, %d, %s, %s, %s, %s)';
+
+			array_push(
+				$video_values,
+				$row['video_id'],
+				$row['title'],
+				$row['description'],
+				$row['thumbnails'],
+				$row['duration'],
+				$row['duration_seconds'],
+				$row['video_type'],
+				$row['status'],
+				$row['published_at'],
+				$row['published_at_datetime']
+			);
+		} else {
+			$video_placeholders[] = '(%s, %s, %s, %s, %s, %s, %s, %s)';
+
+			array_push(
+				$video_values,
+				$row['video_id'],
+				$row['title'],
+				$row['description'],
+				$row['thumbnails'],
+				$row['duration'],
+				$row['status'],
+				$row['published_at'],
+				$row['published_at_datetime']
+			);
+		}
 
 		if ( $store_gallery ) {
 			$gallery_placeholders[] = '(%s, %s)';
-			array_push( $gallery_values, $row['id'], $gallery_id );
+			array_push( $gallery_values, $row['video_id'], $gallery_id );
 		}
 	}
 
 	// Bulk insert videos (2 queries total instead of N×2)
 	if ( ! empty( $video_placeholders ) ) {
-		$sql = "INSERT INTO $videos_table (id, title, description, thumbnails, duration, status, published_at, published_at_datetime)
-			VALUES " . implode( ', ', $video_placeholders ) . "
-			ON DUPLICATE KEY UPDATE
-			title = VALUES(title),
-			description = VALUES(description),
-			thumbnails = VALUES(thumbnails),
-			duration = VALUES(duration),
-			status = VALUES(status),
-			published_at = VALUES(published_at),
-			published_at_datetime = VALUES(published_at_datetime)";
+		if ( $has_video_details ) {
+			$sql = "INSERT INTO $videos_table (video_id, title, description, thumbnails, duration, duration_seconds, video_type, status, published_at, published_at_datetime)
+				VALUES " . implode( ', ', $video_placeholders ) . "
+				ON DUPLICATE KEY UPDATE
+				title = VALUES(title),
+				description = VALUES(description),
+				thumbnails = VALUES(thumbnails),
+				duration = VALUES(duration),
+				duration_seconds = VALUES(duration_seconds),
+				video_type = VALUES(video_type),
+				status = VALUES(status),
+				published_at = VALUES(published_at),
+				published_at_datetime = VALUES(published_at_datetime)";
+		} else {
+			$sql = "INSERT INTO $videos_table (video_id, title, description, thumbnails, duration, status, published_at, published_at_datetime)
+				VALUES " . implode( ', ', $video_placeholders ) . "
+				ON DUPLICATE KEY UPDATE
+				title = VALUES(title),
+				description = VALUES(description),
+				thumbnails = VALUES(thumbnails),
+				duration = VALUES(duration),
+				status = VALUES(status),
+				published_at = VALUES(published_at),
+				published_at_datetime = VALUES(published_at_datetime)";
+		}
 
 		$wpdb->query( $wpdb->prepare( $sql, $video_values ) );
 	}
 
+	// Bulk insert gallery relationships (2 queries total instead of N×2)
 	if ( ! empty( $gallery_placeholders ) ) {
 		$sql = "INSERT IGNORE INTO $galleries_table (video_id, gallery_id) VALUES " . implode( ', ', $gallery_placeholders );
 		$wpdb->query( $wpdb->prepare( $sql, $gallery_values ) );
@@ -414,52 +681,86 @@ function ayg_db_store_videos( $data, $attributes = array() ) {
 }
 
 /**
- * Get a single video record from our custom database table "{$wpdb->prefix}ayg_videos" 
- *
- * @since  2.1.0
- * @param  string $video_id YouTube Video ID.
- * @return mixed
- */
-function ayg_db_get_video( $video_id ) {
-	global $wpdb;
-
-	$cache_key = 'ayg_'. $video_id;
-	$row = wp_cache_get( $cache_key );
-
-	if ( false === $row ) {
-		$query = $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}ayg_videos WHERE id = %s", $video_id );
-		$row = $wpdb->get_row( $query );
-
-		if ( $row ) {
-			if ( ! empty( $row->thumbnails ) ) {
-				$row->thumbnails = unserialize( $row->thumbnails );
-			}
-
-			wp_cache_set( $cache_key, $row );
-		}		
-	}
-
-	return $row;
-}
-
-/**
  * Dump our plugin transients.
  *
  * @since 2.1.0
+ * @param string $uid Gallery uid to target. Empty string flushes all plugin transients.
  */
-function ayg_delete_cache() {
-	delete_option( 'ayg_gallery_page_ids' );
-	
-	// Get the current list of transients
-	$transient_keys = ayg_get_option( 'ayg_transient_keys' );
+function ayg_delete_cache( $uid = '' ) {
+	$uid  = (string) $uid;
+	$keys = (array) ayg_get_option( 'ayg_transient_keys' );
 
-	// For each key, delete that transient
-	foreach ( $transient_keys as $key ) {
+	// Targeted: delete only the keys prefixed with this gallery's uid, keep the rest in the registry.
+	if ( '' !== $uid ) {
+		$prefix    = 'ayg_' . $uid . '_';
+		$remaining = array();
+
+		foreach ( $keys as $key ) {
+			if ( 0 === strpos( $key, $prefix ) ) {
+				delete_transient( $key );
+			} else {
+				$remaining[] = $key;
+			}
+		}
+
+		update_option( 'ayg_transient_keys', $remaining, false );
+		return;
+	}
+
+	// Full flush: every transient, plus the cached gallery page-id lookup.
+	delete_option( 'ayg_gallery_page_ids' );
+
+	foreach ( $keys as $key ) {
 		delete_transient( $key );
 	}
-	
+
 	// Reset our DB value (autoload=no: not needed on every page load)
 	update_option( 'ayg_transient_keys', array(), false );
+}
+
+/**
+ * Remove a gallery's excluded videos from the relationship table.
+ *
+ * @since  2.8.0
+ * @param  int   $gallery_id Gallery ID.
+ * @param  array $exclude    Exclude entries (video IDs or URLs).
+ * @return int               Number of relationships removed.
+ */
+function ayg_delete_excluded_relationships( $gallery_id, $exclude ) {
+	global $wpdb;
+
+	$gallery_id = absint( $gallery_id );
+
+	if ( $gallery_id <= 0 || empty( $exclude ) || ! is_array( $exclude ) ) {
+		return 0;
+	}
+
+	// Resolve the exclude entries (IDs or URLs) to video IDs.
+	$video_ids = array();
+
+	foreach ( $exclude as $entry ) {
+		$video_id = ayg_get_youtube_video_id( $entry );
+
+		if ( '' !== $video_id ) {
+			$video_ids[] = $video_id;
+		}
+	}
+
+	$video_ids = array_values( array_unique( $video_ids ) );
+
+	if ( empty( $video_ids ) ) {
+		return 0;
+	}
+
+	$rel_table    = $wpdb->prefix . 'ayg_gallery_relationships';
+	$placeholders = implode( ',', array_fill( 0, count( $video_ids ), '%s' ) );
+
+	return (int) $wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM $rel_table WHERE gallery_id = %s AND video_id IN ( $placeholders )",
+			array_merge( array( strval( $gallery_id ) ), $video_ids )
+		)
+	);
 }
 
 /** 
@@ -525,7 +826,6 @@ function ayg_get_default_settings() {
 			'controls'              => 1,
 			'modestbranding'        => 1,
 			'cc_load_policy'        => 0,
-			'iv_load_policy'        => 0,
 			'hl'                    => '',
 			'cc_lang_pref'          => '',
 			'privacy_enhanced_mode' => 0,
@@ -550,25 +850,17 @@ function ayg_get_default_settings() {
  * @since  1.0.0
  * @return array Array of fields.
  */
-function ayg_get_editor_fields() {	
+function ayg_get_editor_fields() {
 	$fields = array(
 		'source' => array(
-			'label'  => __( 'General', 'automatic-youtube-gallery' ),
+			'label'  => __( 'Source Configuration', 'automatic-youtube-gallery' ),
 			'fields' => array(
 				array(
 					'name'              => 'type',
 					'label'             => __( 'Source Type', 'automatic-youtube-gallery' ),
 					'description'       => '',
 					'type'              => 'select',
-					'options'           => array(
-						'playlist'   => __( 'Playlist', 'automatic-youtube-gallery' ),
-						'channel'    => __( 'Channel', 'automatic-youtube-gallery' ),
-						'username'   => __( 'Username', 'automatic-youtube-gallery' ),
-						'search'     => __( 'Search Keywords', 'automatic-youtube-gallery' ),
-						'video'      => __( 'Single Video', 'automatic-youtube-gallery' ),
-						'livestream' => __( 'Livestream', 'automatic-youtube-gallery' ),						
-						'videos'     => __( 'Custom Videos List', 'automatic-youtube-gallery' )
-					),
+					'options'           => ayg_get_source_types(),
 					'value'             => 'playlist',
 					'sanitize_callback' => 'sanitize_key'
 				),
@@ -577,14 +869,16 @@ function ayg_get_editor_fields() {
 					'label'             => __( 'YouTube Playlist ID (or) URL', 'automatic-youtube-gallery' ),					
 					'description'       => sprintf( '%s: https://www.youtube.com/playlist?list=XXXXXXXXXX', __( 'Example', 'automatic-youtube-gallery' ) ),
 					'type'              => 'url',
+					'required'          => 1,
 					'value'             => '',
 					'sanitize_callback' => 'sanitize_text_field'
 				),
 				array(
 					'name'              => 'channel',
-					'label'             => __( 'YouTube Channel ID (or) a YouTube Video URL from the Channel', 'automatic-youtube-gallery' ),
+					'label'             => __( 'YouTube Channel ID (or) a Video URL from the Channel', 'automatic-youtube-gallery' ),
 					'description'       => sprintf( '%s: https://www.youtube.com/channel/XXXXXXXXXX', __( 'Example', 'automatic-youtube-gallery' ) ),
 					'type'              => 'url',
+					'required'          => 1,
 					'value'             => '',
 					'sanitize_callback' => 'sanitize_text_field'
 				),
@@ -593,6 +887,7 @@ function ayg_get_editor_fields() {
 					'label'             => __( 'YouTube Account Username', 'automatic-youtube-gallery' ),
 					'description'       => sprintf( '%s: SanRosh', __( 'Example', 'automatic-youtube-gallery' ) ),
 					'type'              => 'text',
+					'required'          => 1,
 					'value'             => '',
 					'sanitize_callback' => 'sanitize_text_field'
 				),
@@ -601,6 +896,7 @@ function ayg_get_editor_fields() {
 					'label'             => __( 'Search Keywords', 'automatic-youtube-gallery' ),
 					'description'       => sprintf( '%s: Cartoon (space:AND , -:NOT , |:OR)', __( 'Example', 'automatic-youtube-gallery' ) ),
 					'type'              => 'text',
+					'required'          => 1,
 					'value'             => '',
 					'sanitize_callback' => 'sanitize_text_field'
 				),
@@ -609,6 +905,7 @@ function ayg_get_editor_fields() {
 					'label'             => __( 'YouTube Video ID (or) URL', 'automatic-youtube-gallery' ),
 					'description'       => sprintf( '%s: https://www.youtube.com/watch?v=XXXXXXXXXX', __( 'Example', 'automatic-youtube-gallery' ) ),
 					'type'              => 'url',
+					'required'          => 1,
 					'value'             => '',
 					'sanitize_callback' => 'sanitize_text_field'
 				),				
@@ -617,13 +914,14 @@ function ayg_get_editor_fields() {
 					'label'             => __( 'YouTube Video IDs (or) URLs', 'automatic-youtube-gallery' ),
 					'description'       => sprintf( '%s: https://www.youtube.com/watch?v=XXXXXXXXXX', __( 'Example', 'automatic-youtube-gallery' ) ),
 					'type'              => 'textarea',					
+					'required'          => 1,
 					'placeholder'       => __( 'Enter one video per line', 'automatic-youtube-gallery' ),
 					'value'             => '',
-					'sanitize_callback' => 'sanitize_text_field'
+					'sanitize_callback' => 'sanitize_textarea_field'
 				),				
 				array(
 					'name'              => 'order',
-					'label'             => __( 'Order Videos by', 'automatic-youtube-gallery' ),
+					'label'             => __( 'Search Order', 'automatic-youtube-gallery' ),
 					'description'       => '',
 					'type'              => 'select',
 					'options' => array(
@@ -634,12 +932,12 @@ function ayg_get_editor_fields() {
 						'viewCount' => __( 'View Count', 'automatic-youtube-gallery' )
 					),
 					'value'             => 'relevance',
-					'sanitize_callback' => 'sanitize_key'
+					'sanitize_callback' => 'sanitize_text_field'
 				),
 				array(
 					'name'              => 'limit',
-					'label'             => __( 'Number of Videos', 'automatic-youtube-gallery' ),					
-					'description'       => __( 'Specifies the maximum number of videos that will appear in this gallery. Set to 0 for the maximum amount (500).', 'automatic-youtube-gallery' ),
+					'label'             => __( 'Search Limit', 'automatic-youtube-gallery' ),
+					'description'       => __( 'Enter the number of videos to display in this gallery. Set to 0 for the maximum amount (500).', 'automatic-youtube-gallery' ),
 					'type'              => 'number',					
 					'min'               => 0,
 					'max'               => 500,
@@ -666,15 +964,15 @@ function ayg_get_editor_fields() {
 			)			
 		),
 		'gallery' => array(
-			'label'  => __( 'Gallery (optional)', 'automatic-youtube-gallery' ),
+			'label'  => __( 'Gallery Options', 'automatic-youtube-gallery' ),
 			'fields' => ayg_get_gallery_settings_fields()
 		),
 		'player' => array(
-			'label'  => __( 'Player (optional)', 'automatic-youtube-gallery' ),
+			'label'  => __( 'Player Options', 'automatic-youtube-gallery' ),
 			'fields' => ayg_get_player_settings_fields()
 		),
 		'search' => array(
-			'label'  => __( 'Search Form (optional)', 'automatic-youtube-gallery' ),
+			'label'  => __( 'Search Form', 'automatic-youtube-gallery' ),
 			'fields' => array(
 				array(
 					'name'              => 'search_form',
@@ -692,6 +990,21 @@ function ayg_get_editor_fields() {
 	);
 
 	return apply_filters( 'ayg_editor_fields', $fields );
+}
+
+/**
+ * Fetch a single gallery row by ID.
+ *
+ * @since  2.8.0
+ * @param  int         $gallery_id Gallery ID.
+ * @return object|null
+ */
+function ayg_get_gallery( $gallery_id ) {
+	global $wpdb;
+
+	return $wpdb->get_row(
+		$wpdb->prepare( "SELECT * FROM `{$wpdb->prefix}ayg_galleries` WHERE id = %d", absint( $gallery_id ) )
+	);
 }
 
 /**
@@ -728,7 +1041,7 @@ function ayg_get_gallery_settings_fields() {
 		array(
 			'name'              => 'per_page',
 			'label'             => __( 'Videos per Page', 'automatic-youtube-gallery' ),
-			'description'       => __( 'Enter the number of videos to show per page. Maximum of 50.', 'automatic-youtube-gallery' ),			
+			'description'       => __( 'Enter the number of videos to show per page. Maximum of 50.', 'automatic-youtube-gallery' ),
 			'type'              => 'number',
 			'min'               => 0,
 			'max'               => 50,
@@ -807,6 +1120,68 @@ function ayg_get_gallery_settings_fields() {
 	);
 
 	return apply_filters( 'ayg_gallery_settings_fields', $fields );
+}
+
+/**
+ * Return the schedule interval options for import scheduling.
+ *
+ * @since  2.8.0
+ * @return array Value (seconds as string) => label pairs.
+ */
+function ayg_get_import_schedule_options() {
+	return array(
+		'paused'  => __( '— Pause Automatic Imports —', 'automatic-youtube-gallery' ),
+		'0'       => __( 'Only Once', 'automatic-youtube-gallery' ),
+		'3600'    => __( 'Every Hour', 'automatic-youtube-gallery' ),
+		'86400'   => __( 'Every Day', 'automatic-youtube-gallery' ),
+		'604800'  => __( 'Every Week', 'automatic-youtube-gallery' ),
+		'2592000' => __( 'Every Month', 'automatic-youtube-gallery' )
+	);
+}
+
+/**
+ * Return the human-readable label for an import status key.
+ *
+ * @since  2.8.0
+ * @param  string   $status      Import status key (idle, running, paused, error, completed).
+ * @param  int|null $video_count Optional. Imported video count, used to resolve the
+ *                               ambiguous "idle" status into "Pending Import" (nothing
+ *                               imported yet) or "Up to Date" (waiting for the next sync).
+ * @param  bool     $resuming    Optional. True when an import was capped mid-run and parked
+ *                               as 'idle' for cron to resume — shown as "Importing", not idle.
+ * @param  string   $context     Optional. 'log' for a per-run history entry, where a successful
+ *                               run (stored as 'idle' for recurring galleries) reads "Completed"
+ *                               like non-recurring runs, instead of the live-state "Idle".
+ * @return string
+ */
+function ayg_get_import_status_label( $status, $video_count = null, $resuming = false, $context = '' ) {
+	if ( 'idle' === $status ) {
+		// History rows record a finished run: a recurring gallery's success is stored as 'idle',
+		// so surface it as "Completed" to match non-recurring runs rather than the live "Idle".
+		if ( 'log' === $context ) {
+			return __( 'Completed', 'automatic-youtube-gallery' );
+		}
+
+		// If the import was capped mid-run and parked as 'idle' for cron to resume, show "Importing".
+		if ( $resuming ) {
+			return __( 'Importing', 'automatic-youtube-gallery' );
+		}
+
+		// If the import has never run, show "Pending Import" instead of "Idle".
+		if ( null !== $video_count ) {
+			return ( (int) $video_count > 0 ) ? __( 'Up to Date', 'automatic-youtube-gallery' ) : __( 'Pending Import', 'automatic-youtube-gallery' );
+		}
+	}
+
+	$statuses = array(
+		'idle'      => __( 'Idle', 'automatic-youtube-gallery' ),
+		'running'   => __( 'Importing', 'automatic-youtube-gallery' ),
+		'paused'    => __( 'Paused', 'automatic-youtube-gallery' ),
+		'error'     => __( 'Error', 'automatic-youtube-gallery' ),
+		'completed' => __( 'Completed', 'automatic-youtube-gallery' )
+	);
+
+	return isset( $statuses[ $status ] ) ? $statuses[ $status ] : ucfirst( $status );
 }
 
 /**
@@ -908,7 +1283,7 @@ function ayg_get_player_settings_fields() {
 		array(
 			'name'              => 'autoplay',
 			'label'             => __( 'Autoplay', 'automatic-youtube-gallery' ),			
-			'description'       => __( 'Specifies whether the initial video will automatically start to play when the player loads.', 'automatic-youtube-gallery' ),
+			'description'       => __( 'Check this option to automatically start playing the initial video when the player loads.', 'automatic-youtube-gallery' ),
 			'type'              => 'checkbox',
 			'value'             => $player_settings['autoplay'],
 			'sanitize_callback' => 'intval'
@@ -916,7 +1291,7 @@ function ayg_get_player_settings_fields() {
 		array(
 			'name'              => 'autoadvance',
 			'label'             => __( 'Autoplay Next Video', 'automatic-youtube-gallery' ),			
-			'description'       => __( 'Specifies whether to play the next video in the list automatically after previous one end.', 'automatic-youtube-gallery' ),
+			'description'       => __( 'Check this option to automatically play the next video in the list after the previous one ends.', 'automatic-youtube-gallery' ),
 			'type'              => 'checkbox',
 			'value'             => $player_settings['autoadvance'],
 			'sanitize_callback' => 'intval'
@@ -924,7 +1299,7 @@ function ayg_get_player_settings_fields() {
 		array(
 			'name'              => 'loop',
 			'label'             => __( 'Loop', 'automatic-youtube-gallery' ),			
-			'description'       => __( 'In the case of a single video player, plays the initial video again and again. In the case of a gallery, plays the entire list in the gallery and then starts again at the first video.', 'automatic-youtube-gallery' ),
+			'description'       => __( 'Check this option to loop playback. In the case of a single video player, plays the initial video again and again. In the case of a gallery, plays the entire list and then starts again at the first video.', 'automatic-youtube-gallery' ),
 			'type'              => 'checkbox',
 			'value'             => $player_settings['loop'],
 			'sanitize_callback' => 'intval'
@@ -948,7 +1323,7 @@ function ayg_get_player_settings_fields() {
 		array(
 			'name'              => 'modestbranding',
 			'label'             => __( 'Hide YouTube Logo', 'automatic-youtube-gallery' ),			
-			'description'       => __( "Lets you prevent the YouTube logo from displaying in the control bar. Note that a small YouTube text label will still display in the upper-right corner of a paused video when the user's mouse pointer hovers over the player.", 'automatic-youtube-gallery' ),
+			'description'       => __( "Check this option to prevent the YouTube logo from displaying in the control bar. Note that a small YouTube text label will still display in the upper-right corner of a paused video when the user's mouse pointer hovers over the player.", 'automatic-youtube-gallery' ),
 			'type'              => 'checkbox',
 			'value'             => $player_settings['modestbranding'],
 			'sanitize_callback' => 'intval'
@@ -956,17 +1331,9 @@ function ayg_get_player_settings_fields() {
 		array(
 			'name'              => 'cc_load_policy',
 			'label'             => __( 'Force Closed Captions', 'automatic-youtube-gallery' ),			
-			'description'       => __( 'Show captions by default, even if the user has turned captions off. The default behavior is based on user preference.', 'automatic-youtube-gallery' ),
+			'description'       => __( 'Check this option to show captions by default, even if the user has turned captions off. The default behavior is based on user preference.', 'automatic-youtube-gallery' ),
 			'type'              => 'checkbox',
 			'value'             => $player_settings['cc_load_policy'],
-			'sanitize_callback' => 'intval'
-		),		
-		array(
-			'name'              => 'iv_load_policy',
-			'label'             => __( 'Show Annotations', 'automatic-youtube-gallery' ),			
-			'description'       => __( 'Choose whether to show annotations or not.', 'automatic-youtube-gallery' ),
-			'type'              => 'checkbox',
-			'value'             => $player_settings['iv_load_policy'],
 			'sanitize_callback' => 'intval'
 		),
 		array(
@@ -1007,6 +1374,36 @@ function ayg_get_player_settings_fields() {
  */
 function ayg_get_single_video_url( $video, $attributes ) {
 	return apply_filters( 'ayg_single_video_url', '', $video, $attributes );
+}
+
+/**
+ * Return the human-readable label for a source type key.
+ *
+ * @since  2.8.0
+ * @param  string $type Source type key (channel, playlist, username, search, livestream, video, videos).
+ * @return string
+ */
+function ayg_get_source_type_label( $type ) {
+	$types = ayg_get_source_types();
+	return isset( $types[ $type ] ) ? $types[ $type ] : ucfirst( $type );
+}
+
+/**
+ * Get source types.
+ *
+ * @since  2.8.0
+ * @return array
+ */
+function ayg_get_source_types() {
+	return array(
+		'channel'    => __( 'Channel', 'automatic-youtube-gallery' ),
+		'playlist'   => __( 'Playlist', 'automatic-youtube-gallery' ),
+		'username'   => __( 'Username', 'automatic-youtube-gallery' ),
+		'search'     => __( 'Search Keywords', 'automatic-youtube-gallery' ),
+		'livestream' => __( 'Livestream', 'automatic-youtube-gallery' ),
+		'video'      => __( 'Single Video', 'automatic-youtube-gallery' ),						
+		'videos'     => __( 'Custom Videos List', 'automatic-youtube-gallery' )
+	);
 }
 
 /**
@@ -1118,11 +1515,6 @@ function ayg_get_youtube_embed_url( $video_id, $attributes = array() ) {
 		$url = add_query_arg( 'cc_load_policy', 1, $url );
 	}
 
-	$iv_load_policy = isset( $attributes['iv_load_policy'] ) ? (int) $attributes['iv_load_policy'] : 0;
-	if ( 0 == $iv_load_policy ) {
-		$url = add_query_arg( 'iv_load_policy', 3, $url );
-	}
-
 	if ( isset( $attributes['hl'] ) && ! empty( $attributes['hl'] ) ) {
 		$url = add_query_arg( 'hl', sanitize_text_field( $attributes['hl'] ), $url );
 	}
@@ -1132,6 +1524,33 @@ function ayg_get_youtube_embed_url( $video_id, $attributes = array() ) {
 	}
 
 	return apply_filters( 'ayg_youtube_embed_url', $url, $video_id, $attributes );
+}
+
+/**
+ * Resolve a YouTube video ID from a bare ID or a YouTube URL.
+ *
+ * @since  2.8.0
+ * @param  string $string A video ID or YouTube URL.
+ * @return string         The 11-char video ID, or '' if none found.
+ */
+function ayg_get_youtube_video_id( $string ) {
+	$string = trim( (string) $string );
+
+	if ( '' === $string ) {
+		return '';
+	}
+
+	// Already a bare video ID.
+	if ( preg_match( '~^[A-Za-z0-9_-]{11}$~', $string ) ) {
+		return $string;
+	}
+
+	// Common YouTube URL forms.
+	if ( preg_match( '~(?:v=|/(?:embed|v|shorts|live)/|youtu\.be/)([A-Za-z0-9_-]{11})~', $string, $matches ) ) {
+		return $matches[1];
+	}
+
+	return '';
 }
 
 /**
@@ -1184,6 +1603,49 @@ function ayg_is_ios() {
     }
 
     return false;
+}
+
+/**
+ * Check whether a video ID matches a gallery's exclude list.
+ *
+ * @since  2.8.0
+ * @param  string $video_id YouTube video ID.
+ * @param  array  $exclude  Exclude entries (video IDs or URLs).
+ * @return bool             True if the video is excluded.
+ */
+function ayg_is_video_excluded( $video_id, $exclude ) {
+	if ( empty( $video_id ) || empty( $exclude ) || ! is_array( $exclude ) ) {
+		return false;
+	}
+
+	foreach ( $exclude as $entry ) {
+		if ( false !== strpos( $entry, $video_id ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Parse an ISO 8601 duration (e.g. PT4M13S) into total seconds.
+ *
+ * @since  2.8.0
+ * @param  string $iso8601 ISO 8601 duration string from the YouTube API.
+ * @return int             Duration in seconds.
+ */
+function ayg_parse_duration_seconds( $iso8601 ) {
+	if ( empty( $iso8601 ) ) {
+		return 0;
+	}
+
+	try {
+		$interval = new DateInterval( $iso8601 );
+	} catch ( Exception $e ) {
+		return 0;
+	}
+
+	return ( $interval->d * DAY_IN_SECONDS ) + ( $interval->h * HOUR_IN_SECONDS ) + ( $interval->i * MINUTE_IN_SECONDS ) + $interval->s;
 }
 
 /**
