@@ -40,6 +40,19 @@ class AYG_YouTube_API {
     protected $params = array();
 
 	/**
+	 * May this query write gallery membership rows?
+	 *
+	 * Opt-in, set from the "store" query param. Only trusted server side callers set it — the
+	 * page renderer (ayg_build_gallery), the Gallery Builder importer, and the public AJAX
+	 * endpoint once it has resolved the gallery itself. See request_api().
+	 *
+	 * @since  2.9.0
+	 * @access protected
+     * @var    bool
+     */
+	protected $can_store = false;
+
+	/**
      * Is development mode enabled?
 	 * 
 	 * @since  2.3.0
@@ -67,8 +80,12 @@ class AYG_YouTube_API {
 	 *
 	 * Side effect: successful responses are persisted to the custom tables via
 	 * ayg_db_store_videos() (called inside request_api()) — video rows always, and
-	 * gallery relationships when a "uid" param is supplied. This is how both legacy
-	 * galleries and the Gallery Builder importer store their videos.
+	 * gallery relationships only when the caller passes both a "uid" and "store" => true.
+	 * This is how both legacy galleries and the Gallery Builder importer store their videos.
+	 *
+	 * "store" must never be set from user input: it decides which gallery the fetched videos
+	 * are shown in. Callers reachable by unauthenticated visitors have to resolve the gallery
+	 * server side first — see AYG_Public::ajax_callback_load_videos().
 	 *
 	 * @since  1.0.0
      * @param  array $params Array of query params.
@@ -88,8 +105,9 @@ class AYG_YouTube_API {
 			return $this->get_error( __( 'YouTube API key not found.', 'automatic-youtube-gallery' ) . ' ' . sprintf( __( 'Kindly follow this URL <a href="%s" target="_blank" rel="noopener noreferrer">this guide</a> to get your own API key.', 'automatic-youtube-gallery' ), 'https://plugins360.com/automatic-youtube-gallery/how-to-get-youtube-api-key/' ) );
 		}
 
-		$this->api_key = $general_settings['api_key'];
-		$this->params  = $params;
+		$this->api_key   = $general_settings['api_key'];
+		$this->params    = $params;
+		$this->can_store = ! empty( $params['store'] );
 
 		// Is development mode enabled?
 		if ( isset( $general_settings['development_mode'] ) && ! empty( $general_settings['development_mode'] ) ) {
@@ -473,11 +491,10 @@ class AYG_YouTube_API {
     private function request_api_search( $params = array() ) {
 		$api_url = $this->get_api_url( 'search.list' );
 
-		$params['q'] = $params['src'];		
-
-		if ( ! empty( $params['q'] ) ) {
-			$params['q'] = str_replace( '|', '%7C', $params['q'] );
-		}
+		// Passed through unmodified: request_api() now runs every parameter through
+		// http_build_query(), which encodes the OR operator "|" to %7C on its own. Pre-encoding it
+		// here would be double encoded into %257C and break the search.
+		$params['q'] = $params['src'];
 
 		$params['type'] = 'video'; // Overrides user defined type value 'search'
 
@@ -808,7 +825,7 @@ class AYG_YouTube_API {
 
 		foreach ( $videos as $index => $video ) {
 			if ( ! empty( $video->thumbnails ) ) {
-				$videos[ $index ]->thumbnails = maybe_unserialize( $video->thumbnails );
+				$videos[ $index ]->thumbnails = ayg_maybe_unserialize( $video->thumbnails );
 			}
 
 			// Backward compat: templates reference $video->id as the YouTube video ID.
@@ -869,16 +886,10 @@ class AYG_YouTube_API {
 		}
 		$cache_duration = min( $cache_duration, 2419200 ); // Max cache duration: 1 Month
 
-		$q = '';
-		if ( isset( $params['q'] ) ) {
-			$q = $params['q'];
-			unset( $params['q'] );
-		}
-
+		// Every parameter — the search term "q" included — goes through http_build_query() so it is
+		// URL encoded. "q" used to be appended to the URL raw, which meant a caller could smuggle
+		// extra parameters into the outbound request by putting "&" in the search keywords.
 		$api_url = $url . ( strpos( $url, '?' ) === false ? '?' : '&' ) . http_build_query( $params );
-		if ( ! empty( $q ) ) {
-			$api_url .= '&q=' . $q;
-		}
 
 		// Prefix the cache key with the gallery uid so a single gallery's transients can be cleared
 		// on demand (e.g. saving a live search/livestream gallery) via ayg_delete_cache( $uid ).
@@ -953,9 +964,24 @@ class AYG_YouTube_API {
 			update_option( 'ayg_transient_keys', $cache_keys, false );
 		}		
 
-		// Store videos in our custom database table "{$wpdb->prefix}ayg_videos" 
-		ayg_db_store_videos( $data, $this->params );
-		
+		// Store videos in our custom database table "{$wpdb->prefix}ayg_videos"
+		//
+		// What reaches the storage layer is rebuilt from an explicit allowlist instead of being
+		// handed the raw request params, so the allowlist that governs the outbound request now
+		// governs the database write made from the same function. Gallery membership ("uid") is
+		// the value that decides what a gallery displays, so it is only passed along when the
+		// caller opted in through "store" — never on the strength of a "uid" alone.
+		$store_attributes = array(
+			'type'    => isset( $this->params['type'] ) ? $this->params['type'] : '',
+			'exclude' => ( isset( $this->params['exclude'] ) && is_array( $this->params['exclude'] ) ) ? $this->params['exclude'] : array()
+		);
+
+		if ( $this->can_store && ! empty( $this->params['uid'] ) ) {
+			$store_attributes['uid'] = (string) $this->params['uid'];
+		}
+
+		ayg_db_store_videos( $data, $store_attributes );
+
 		// Finally return the data
 		return $data;
 	}

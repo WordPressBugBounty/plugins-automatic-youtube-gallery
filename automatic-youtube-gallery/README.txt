@@ -6,7 +6,7 @@ Tags: youtube gallery, youtube playlist, youtube channel, youtube embed, youtube
 Requires at least: 6.3
 Tested up to: 7.0
 Requires PHP: 5.6.20
-Stable tag: 2.8.1
+Stable tag: 2.9.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -173,6 +173,19 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 10. API Key Setup — configure the free YouTube Data API key in minutes
 
 == Changelog ==
+
+= 2.9.0 =
+
+* Security Fix: Fixed a vulnerability that allowed an unauthenticated visitor to add YouTube videos of their choosing to any gallery on the site through the gallery pagination endpoint. The endpoint now identifies the gallery from the site's own saved data instead of trusting the request, and will not fetch from the YouTube Data API for a gallery that does not exist on the site.
+* Security Fix: A gallery's cache duration can no longer be altered by the request, so the cache can no longer be bypassed to force repeated YouTube Data API calls against your quota. Your "Cache Duration" setting continues to work exactly as configured, including "No Caching". Added the `ayg_ajax_cache_duration` filter hook for sites that need to change it.
+* Security Fix: Pagination tokens for galleries that read from the YouTube Data API are now signed, so only page requests your own site issued are acted on. This closes the remaining way an unauthenticated visitor could run down your daily API quota.
+* Security Fix: Search keywords are now fully URL encoded before the request is sent to the YouTube Data API, so extra parameters can no longer be appended to the outgoing request.
+* Security Fix: Hardened reading of stored video thumbnail data so it can only ever produce plain data.
+
+All of the security issues above were discovered and reported responsibly to us by [Mohammed Abd Alrahman](https://mohmadev.com/).
+
+* New: Introduced `ayg_ajax_cache_duration` filter hook.
+* New: Introduced `ayg_get_gallery_source()`, `ayg_db_gallery_has_videos()`, `ayg_sign_page_token()` and `ayg_verify_page_token()` helper functions.
 
 = 2.8.1 =
 
@@ -401,6 +414,6 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 
 == Upgrade Notice ==
 
-= 2.8.1 =
+= 2.9.0 =
 
-Introduces the new Gallery Builder. Your existing shortcodes, blocks, and widgets keep working unchanged — nothing on your site needs to be rebuilt. Galleries now update automatically; click "Update Gallery" anytime for an instant refresh.
+Security release. Fixes a flaw that let an unauthenticated visitor add YouTube videos of their choosing to any gallery on your site. Please update as soon as possible — your existing shortcodes, blocks and widgets keep working unchanged.

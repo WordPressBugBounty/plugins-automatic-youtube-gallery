@@ -72,23 +72,13 @@ function ayg_build_gallery( $args ) {
 		$args = array_merge( $config_params, $args );
 
 		// The source always comes from the config and can't be overridden by the shortcode.
-		// Livestream and search query the live API at display time (nothing is imported/stored);
-		// everything else renders from the DB.
-		if ( 'livestream' === $config->source_type ) {
-			$args['type']    = 'livestream';
-			$args['channel'] = $config->source_value;
-		} elseif ( 'search' === $config->source_type ) {
-			$args['type']   = 'search';
-			$args['search'] = $config->source_value;
-		} elseif ( 'video' === $config->source_type ) {
-			// A single video renders live from the API (like search / livestream) — nothing is
-			// imported or stored — so serve it through the live 'video' source type.
-			$args['type']  = 'video';
-			$args['video'] = $config->source_value;
-		} else {
-			$args['type'] = 'db';
-			$args['db']   = strval( $config->id );
-		}
+		// Livestream, search and single video query the live API at display time (nothing is
+		// imported/stored); everything else renders from the DB. ayg_get_gallery_source() owns that
+		// mapping so the public AJAX endpoint resolves the same source from the same saved row.
+		$source = ayg_get_gallery_source( $config );
+
+		$args['type']             = $source['type'];
+		$args[ $source['field'] ] = $source['src'];
 
 		// Single video + popup mode → force the popup theme, mirroring the block and widget (which
 		// apply this before calling ayg_build_gallery()).
@@ -188,6 +178,7 @@ function ayg_build_gallery( $args ) {
 		'uid'               => $attributes['uid'],
 		'type'              => $source_type,
 		'src'               => $source_url,
+		'store'             => true,                                           // Trusted context: the source comes from the rendered shortcode, not from a visitor's request.
 		'featured_video_id' => $featured_video_id,                             // Works only when type = "db".
 		'order'             => sanitize_text_field( $attributes['order'] ),    // Works only when type = "search".
 		'sort_by'           => sanitize_key( $attributes['sort_by'] ),         // Works only when type = "db".
@@ -247,7 +238,15 @@ function ayg_build_gallery( $args ) {
 
 		// Pagination
 		if ( isset( $response->page_info ) ) {
-			$attributes = array_merge( $attributes, $api_params, $response->page_info );
+			$page_info = $response->page_info;
+
+			// Sign the page tokens on their way out to the browser so the public AJAX endpoint can
+			// tell the tokens this site issued from ones a visitor made up.
+			if ( ayg_page_token_is_signed( $source_type ) ) {
+				$page_info = ayg_sign_page_tokens( $page_info, $attributes['uid'] );
+			}
+
+			$attributes = array_merge( $attributes, $api_params, $page_info );
 		}
 
 		// Theme
@@ -456,7 +455,37 @@ function ayg_db_create_custom_tables() {
 }
 
 /**
- * Get a single video record from our custom database table "{$wpdb->prefix}ayg_videos" 
+ * Check whether any videos are linked to the given gallery UID.
+ *
+ * Lets the public AJAX endpoint tell a gallery this site actually displays from a UID a visitor
+ * simply made up: a gallery that has been rendered even once always has its videos in the
+ * relationship table, an invented UID never does.
+ *
+ * @since  2.9.0
+ * @param  string $gallery_id Gallery UID.
+ * @return bool               True when at least one video is linked to the UID.
+ */
+function ayg_db_gallery_has_videos( $gallery_id ) {
+	global $wpdb;
+
+	$gallery_id = (string) $gallery_id;
+
+	if ( '' === $gallery_id ) {
+		return false;
+	}
+
+	$found = $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT 1 FROM {$wpdb->prefix}ayg_gallery_relationships WHERE gallery_id = %s LIMIT 1",
+			$gallery_id
+		)
+	);
+
+	return ! empty( $found );
+}
+
+/**
+ * Get a single video record from our custom database table "{$wpdb->prefix}ayg_videos"
  *
  * @since  2.1.0
  * @param  string $video_id YouTube Video ID.
@@ -474,7 +503,7 @@ function ayg_db_get_video( $video_id ) {
 
 		if ( $row ) {
 			if ( ! empty( $row->thumbnails ) ) {
-				$row->thumbnails = unserialize( $row->thumbnails );
+				$row->thumbnails = ayg_maybe_unserialize( $row->thumbnails );
 			}
 
 			// Backward compat: templates reference $video->id as the YouTube video ID.
@@ -1123,6 +1152,96 @@ function ayg_get_gallery_settings_fields() {
 }
 
 /**
+ * Build the signature that ties a gallery UID to the source and cache duration it was rendered
+ * with.
+ *
+ * A gallery UID is printed into the page, so it is not a secret and cannot be trusted on its own.
+ * What this protects is the *pairing*: a request may only ask for the source that was rendered
+ * alongside that UID, at the cache duration that gallery was configured with.
+ *
+ * It exists because a UID cannot always be recomputed. ayg_build_gallery() derives it as
+ * md5( type + source ), but a gallery can override that through the "uid" shortcode attribute or
+ * the ayg_gallery_id filter, and neither is knowable from the request alone. Signing the whole set
+ * at render time lets the public AJAX endpoint accept such galleries without also having to accept
+ * whatever source — or cache duration — the caller claims goes with them.
+ *
+ * Including the cache duration is what lets the "Cache Duration" gallery option keep working
+ * exactly as the site owner set it, right down to "No Caching", while still making it impossible
+ * for a visitor to bypass the cache and force live API requests.
+ *
+ * Each part is length prefixed so that no two different sets of values can produce the same
+ * string to sign.
+ *
+ * @since  2.9.0
+ * @param  string     $uid   Gallery UID.
+ * @param  string     $type  Gallery source type.
+ * @param  string     $src   Gallery source value.
+ * @param  string|int $cache Gallery cache duration in seconds.
+ * @return string            Signature.
+ */
+function ayg_get_gallery_signature( $uid, $type, $src, $cache ) {
+	$parts = array( (string) $uid, (string) $type, (string) $src, (string) (int) $cache );
+	$data  = 'ayg_gallery';
+
+	foreach ( $parts as $part ) {
+		$data .= '|' . strlen( $part ) . ':' . $part;
+	}
+
+	return substr( wp_hash( $data ), 0, 16 );
+}
+
+/**
+ * Resolve a saved gallery's source type and value.
+ *
+ * Livestream, search and single video galleries query the YouTube API at display time — nothing
+ * is imported for them — so they keep their own source type. Everything else is served from the
+ * custom tables through the internal "db" source type, keyed by the gallery ID.
+ *
+ * Both the renderer (ayg_build_gallery) and the public AJAX endpoint resolve a saved gallery's
+ * source through this function, so an untrusted request can never point a gallery at a source
+ * other than the one stored in its own row.
+ *
+ * @since  2.9.0
+ * @param  object $gallery Gallery row from "{$wpdb->prefix}ayg_galleries".
+ * @return array           Source "type", the matching attribute name in "field", and the
+ *                         source value in "src".
+ */
+function ayg_get_gallery_source( $gallery ) {
+	$source_type  = isset( $gallery->source_type ) ? $gallery->source_type : '';
+	$source_value = isset( $gallery->source_value ) ? $gallery->source_value : '';
+
+	if ( 'livestream' === $source_type ) {
+		return array(
+			'type'  => 'livestream',
+			'field' => 'channel',
+			'src'   => $source_value
+		);
+	}
+
+	if ( 'search' === $source_type ) {
+		return array(
+			'type'  => 'search',
+			'field' => 'search',
+			'src'   => $source_value
+		);
+	}
+
+	if ( 'video' === $source_type ) {
+		return array(
+			'type'  => 'video',
+			'field' => 'video',
+			'src'   => $source_value
+		);
+	}
+
+	return array(
+		'type'  => 'db',
+		'field' => 'db',
+		'src'   => strval( $gallery->id )
+	);
+}
+
+/**
  * Return the schedule interval options for import scheduling.
  *
  * @since  2.8.0
@@ -1204,6 +1323,22 @@ function ayg_get_option( $option ) {
 
     // Merge saved values with defaults
     return wp_parse_args( $saved, $default );
+}
+
+/**
+ * Build the signature for a pagination token.
+ *
+ * Keyed on the site's own salts through wp_hash(), and bound to the gallery so a token issued for
+ * one gallery cannot be replayed against another. Unlike a nonce this never expires, so tokens
+ * printed into a page that is held by a full page cache keep working.
+ *
+ * @since  2.9.0
+ * @param  string $token Raw page token.
+ * @param  string $uid   Gallery UID the token belongs to.
+ * @return string        Signature.
+ */
+function ayg_get_page_token_signature( $token, $uid ) {
+	return substr( wp_hash( 'ayg_page_token|' . (string) $uid . '|' . (string) $token ), 0, 16 );
 }
 
 /**
@@ -1628,6 +1763,62 @@ function ayg_is_video_excluded( $video_id, $exclude ) {
 }
 
 /**
+ * Unserialize a stored value without letting it instantiate arbitrary classes.
+ *
+ * Our serialized columns only ever hold the thumbnail set from an API response — plain data plus
+ * stdClass objects — so nothing else is allowed through. This keeps a row that was tampered with
+ * or carried over from another install from building an object of some other class.
+ *
+ * @since  2.9.0
+ * @param  string $value Serialized value.
+ * @return mixed         Unserialized value, or the value unchanged when it isn't serialized.
+ */
+function ayg_maybe_unserialize( $value ) {
+	if ( ! is_serialized( $value ) ) {
+		return $value;
+	}
+
+	// is_serialized() trims the value before testing it, so trim here as well — otherwise a padded
+	// value passes the test and then fails to unserialize. Mirrors core's maybe_unserialize().
+	$value = trim( $value );
+
+	// PHP 7.0+ can restrict this natively.
+	if ( version_compare( PHP_VERSION, '7.0', '>=' ) ) {
+		return @unserialize( $value, array( 'allowed_classes' => array( 'stdClass' ) ) );
+	}
+
+	// PHP 5.6 has no "allowed_classes" option, so screen the payload instead: "O:" introduces a
+	// plain object and "C:" a Serializable one, so refuse the value outright if it names any class
+	// other than stdClass. Same protection as the call above, without raising the minimum PHP
+	// version and cutting those sites off from plugin updates.
+	if ( preg_match_all( '/(?:^|[;{])([OC]):\d+:"([^"]*)"/', $value, $matches, PREG_SET_ORDER ) ) {
+		foreach ( $matches as $match ) {
+			if ( 'O' !== $match[1] || 'stdClass' !== $match[2] ) {
+				return false;
+			}
+		}
+	}
+
+	return @unserialize( $value );
+}
+
+/**
+ * Does this source type hand out signed pagination tokens?
+ *
+ * Only the sources that page through the live YouTube API do, because for those every distinct
+ * page token means another API call. The rest either never reach the API at all (the Gallery
+ * Builder "db" source) or page through a list already known to the site ("videos"), where the
+ * page number is simply clamped to the real range and so cannot force extra calls.
+ *
+ * @since  2.9.0
+ * @param  string $source_type Gallery source type.
+ * @return bool                True when tokens of this source type are signed.
+ */
+function ayg_page_token_is_signed( $source_type ) {
+	return in_array( $source_type, array( 'playlist', 'channel', 'username', 'search' ), true );
+}
+
+/**
  * Parse an ISO 8601 duration (e.g. PT4M13S) into total seconds.
  *
  * @since  2.8.0
@@ -1672,6 +1863,47 @@ function ayg_sanitize_int( $value ) {
 }
 
 /**
+ * Sign a pagination token before it is handed to the browser.
+ *
+ * Page tokens travel out to the visitor and are posted back to the public AJAX endpoint, where
+ * each distinct token means another live call to the YouTube Data API. Signing them means only
+ * the tokens this site actually issued are ever acted on, so a visitor cannot invent an endless
+ * stream of new ones and burn through the site's daily API quota.
+ *
+ * @since  2.9.0
+ * @param  string $token Raw page token from the API response.
+ * @param  string $uid   Gallery UID the token belongs to.
+ * @return string        Signed token, or an empty string when there is no token.
+ */
+function ayg_sign_page_token( $token, $uid ) {
+	$token = (string) $token;
+
+	if ( '' === $token ) {
+		return '';
+	}
+
+	return $token . '.' . ayg_get_page_token_signature( $token, $uid );
+}
+
+/**
+ * Sign the pagination tokens in a page info array.
+ *
+ * @since  2.9.0
+ * @param  array  $page_info Page info array from the API response.
+ * @param  string $uid       Gallery UID the tokens belong to.
+ * @return array             The same array with its tokens signed.
+ */
+function ayg_sign_page_tokens( $page_info, $uid ) {
+	foreach ( array( 'next_page_token', 'prev_page_token' ) as $key ) {
+		if ( ! empty( $page_info[ $key ] ) ) {
+			$page_info[ $key ] = ayg_sign_page_token( $page_info[ $key ], $uid );
+		}
+	}
+
+	return $page_info;
+}
+
+/**
  * Trims text to a certain number of characters.
  *
  * @since  2.0.0
@@ -1700,7 +1932,41 @@ function ayg_trim_words( $text, $num_characters, $append = '...' ) {
 		$text .= $append;
 	}
 
-	return apply_filters( 'ayg_trim_words', $text, $original_text, $num_characters, $append );	
+	return apply_filters( 'ayg_trim_words', $text, $original_text, $num_characters, $append );
+}
+
+/**
+ * Verify a pagination token that came back from the browser.
+ *
+ * @since  2.9.0
+ * @param  string $token Signed token as posted by the browser.
+ * @param  string $uid   Gallery UID the token is claimed to belong to.
+ * @return string|false  The raw token when the signature matches, false when it does not. An
+ *                       empty token is the first page and needs no signature.
+ */
+function ayg_verify_page_token( $token, $uid ) {
+	$token = (string) $token;
+
+	if ( '' === $token ) {
+		return '';
+	}
+
+	// The signature is appended last, and a YouTube page token can itself contain almost anything,
+	// so split on the final separator rather than the first.
+	$position = strrpos( $token, '.' );
+
+	if ( false === $position ) {
+		return false;
+	}
+
+	$raw       = substr( $token, 0, $position );
+	$signature = substr( $token, $position + 1 );
+
+	if ( '' === $raw || ! hash_equals( ayg_get_page_token_signature( $raw, $uid ), $signature ) ) {
+		return false;
+	}
+
+	return $raw;
 }
 
 /**

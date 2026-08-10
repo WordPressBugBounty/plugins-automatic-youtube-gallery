@@ -35,8 +35,18 @@ $params = array(
     'player_description'   => ! empty( $attributes['player_description'] ) ? (int) $attributes['player_description'] : 0
 );
 
-$params = apply_filters( 'ayg_search_form_params', $params, $attributes ); 
+$params = apply_filters( 'ayg_search_form_params', $params, $attributes );
 $params = apply_filters( 'ayg_search_form_args', $params, $attributes ); // Deprecated for consistency in version 2.7.2
+
+// Signed last, so the signature covers the values that are actually sent — including any a filter
+// changed above. It ties the gallery UID to its source and cache duration, so the AJAX endpoint
+// can tell a genuine set from one a visitor put together. See ayg_get_gallery_signature().
+$params['signature'] = ayg_get_gallery_signature(
+    isset( $params['uid'] ) ? $params['uid'] : '',
+    isset( $params['type'] ) ? $params['type'] : '',
+    isset( $params['src'] ) ? $params['src'] : '',
+    isset( $params['cache'] ) ? $params['cache'] : 0
+);
 ?>
 <ayg-search-form data-params="<?php echo esc_attr( wp_json_encode( $params ) ); ?>">
     <form class="ayg-search-form">

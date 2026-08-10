@@ -11,7 +11,7 @@
  * Plugin Name:       Automatic YouTube Gallery
  * Plugin URI:        https://plugins360.com/automatic-youtube-gallery/
  * Description:       Embed YouTube videos, playlists, channels, live streams & Shorts in a responsive video gallery that stays up to date automatically.
- * Version:           2.8.1
+ * Version:           2.9.0
  * Author:            Team Plugins360
  * Author URI:        https://plugins360.com
  * License:           GPL-2.0+
@@ -30,7 +30,7 @@ if ( function_exists( 'ayg_fs' ) ) {
 }
 // Current version of the plugin
 if ( !defined( 'AYG_VERSION' ) ) {
-    define( 'AYG_VERSION', '2.8.1' );
+    define( 'AYG_VERSION', '2.9.0' );
 }
 // Unique identifier of the plugin
 if ( !defined( 'AYG_SLUG' ) ) {

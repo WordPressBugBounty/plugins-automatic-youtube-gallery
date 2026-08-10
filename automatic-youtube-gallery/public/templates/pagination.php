@@ -45,6 +45,16 @@ $params = array(
 
 $params = apply_filters( 'ayg_pagination_args', $params, $attributes );
 
+// Signed last, so the signature covers the values that are actually sent — including any a filter
+// changed above. It ties the gallery UID to its source and cache duration, so the AJAX endpoint
+// can tell a genuine set from one a visitor put together. See ayg_get_gallery_signature().
+$params['signature'] = ayg_get_gallery_signature(
+    isset( $params['uid'] ) ? $params['uid'] : '',
+    isset( $params['type'] ) ? $params['type'] : '',
+    isset( $params['src'] ) ? $params['src'] : '',
+    isset( $params['cache'] ) ? $params['cache'] : 0
+);
+
 // Process output
 if ( $params['total_pages'] <= 1 ) {
     return false;

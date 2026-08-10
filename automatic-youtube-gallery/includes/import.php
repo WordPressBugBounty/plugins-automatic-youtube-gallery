@@ -307,6 +307,7 @@ class AYG_Import {
 			'type'       => $gallery->source_type,
 			'src'        => $gallery->source_value,
 			'uid'        => strval( $gallery->id ),
+			'store'      => true, // Trusted context: admin "Update Gallery" and cron, with the source read from the gallery row.
 			'exclude'    => ( isset( $params['exclude'] ) && is_array( $params['exclude'] ) ) ? $params['exclude'] : array(),
 			'mode'       => 'advanced',
 			'maxResults' => 50, // YouTube's max per call; one quota unit regardless, so always page at 50
