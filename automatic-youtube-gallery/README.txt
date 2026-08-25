@@ -4,9 +4,9 @@ Contributors: plugins360, wpvideogallery, freemius
 Donate link: https://plugins360.com
 Tags: youtube gallery, youtube playlist, youtube channel, youtube embed, youtube live
 Requires at least: 6.3
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 5.6.20
-Stable tag: 2.9.0
+Stable tag: 2.9.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -173,6 +173,10 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 10. API Key Setup — configure the free YouTube Data API key in minutes
 
 == Changelog ==
+
+= 2.9.1 =
+
+* Compatibility: Tested with WordPress 7.1.
 
 = 2.9.0 =
 
@@ -414,6 +418,6 @@ All of the security issues above were discovered and reported responsibly to us 
 
 == Upgrade Notice ==
 
-= 2.9.0 =
+= 2.9.1 =
 
-Security release. Fixes a flaw that let an unauthenticated visitor add YouTube videos of their choosing to any gallery on your site. Please update as soon as possible — your existing shortcodes, blocks and widgets keep working unchanged.
+Compatibility release. Tested with WordPress 7.1. No functional changes — your existing shortcodes, blocks and widgets keep working unchanged.
