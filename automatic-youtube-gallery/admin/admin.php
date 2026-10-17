@@ -76,8 +76,29 @@ class AYG_Admin {
 			}
 
 			// Insert the livestream settings			
-			if ( false == get_option( 'ayg_livestream_settings' ) ) {
-				add_option( 'ayg_livestream_settings', $defaults['ayg_livestream_settings'] );
+			$livestream_settings = get_option( 'ayg_livestream_settings' );
+
+			if ( ! is_array( $livestream_settings ) || empty( $livestream_settings ) ) {
+				$livestream_settings = $defaults['ayg_livestream_settings'];
+				update_option( 'ayg_livestream_settings', $livestream_settings );
+			}
+
+			if ( ! array_key_exists( 'offline_display', $livestream_settings ) ) {
+				$livestream_settings['offline_display'] = 'message';
+				update_option( 'ayg_livestream_settings', $livestream_settings );
+			}
+
+			// Insert the general settings
+			$general_settings = get_option( 'ayg_general_settings' );
+
+			if ( ! is_array( $general_settings ) || empty( $general_settings ) ) {
+				$general_settings = $defaults['ayg_general_settings'];
+				update_option( 'ayg_general_settings', $general_settings );
+			}
+
+			if ( ! array_key_exists( 'force_load_assets', $general_settings ) ) {
+				$general_settings['force_load_assets'] = $defaults['ayg_general_settings']['force_load_assets'];
+				update_option( 'ayg_general_settings', $general_settings );
 			}
 
 			// Insert the privacy settings			
@@ -207,7 +228,7 @@ class AYG_Admin {
 	}
 
 	/**
-	 * Add "Dashboard" menu.
+	 * Add "All Galleries" and "Add New Gallery" menus.
 	 *
 	 * @since 1.3.0
 	 */
@@ -227,12 +248,39 @@ class AYG_Admin {
 
 		add_submenu_page(
 			'automatic-youtube-gallery',
-			__( 'Dashboard', 'automatic-youtube-gallery' ),
-			__( 'Dashboard', 'automatic-youtube-gallery' ),
+			__( 'All Galleries', 'automatic-youtube-gallery' ),
+			__( 'All Galleries', 'automatic-youtube-gallery' ),
 			'manage_options',
 			'automatic-youtube-gallery',
 			array( $this, 'display_dashboard_content' )
 		);
+
+		add_submenu_page(
+			'automatic-youtube-gallery',
+			__( 'Add New Gallery', 'automatic-youtube-gallery' ),
+			__( 'Add New Gallery', 'automatic-youtube-gallery' ),
+			'manage_options',
+			'admin.php?page=automatic-youtube-gallery&action=new'
+		);
+	}
+
+	/**
+	 * Highlight the "Add New Gallery" menu while the new gallery form is open.
+	 *
+	 * @since  2.9.2
+	 * @param  string|null $submenu_file The submenu file to highlight.
+	 * @return string|null               The filtered submenu file.
+	 */
+	public function submenu_file( $submenu_file ) {
+		global $plugin_page;
+
+		$action = isset( $_GET['action'] ) ? sanitize_text_field( $_GET['action'] ) : '';
+
+		if ( 'automatic-youtube-gallery' === $plugin_page && 'new' === $action ) {
+			return 'admin.php?page=automatic-youtube-gallery&action=new';
+		}
+
+		return $submenu_file;
 	}
 
 	/**

@@ -29,6 +29,7 @@
                 background-size: cover;
                 cursor: pointer;
                 line-height: 1.5;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                 font-size: 16px;
             }
 
@@ -85,33 +86,52 @@
                 left: 50%;
                 flex-direction: column;
                 align-items: center;
-                justify-content: center;
-                gap: 0.75em;  
+                gap: 0.75em;
                 transform: translate3d(-50%, -50%, 0);
                 z-index: 1;
-                border-radius: 3px; 
+                border-radius: 3px;
                 background: rgba(0, 0, 0, 0.7);
                 padding: 1em;
                 width: 90%;
-                max-width: 640px;            
+                max-width: 640px;
+                max-height: 100%;
+                overflow-y: auto;
                 color: #fff;
             }
-            
-            #cookieconsent-button {
-                display: block;
-                margin: 0;
-                border: 0;
-                border-radius: 3px;  
-                background: #e70808;
-                cursor: pointer; 
-                padding: 0.5em 1em;   
-                color: #fff; 
+
+            /* Auto margins centre the content vertically while it fits, and let it start at the top and scroll when it doesn't */
+            #cookieconsent-modal > :first-child {
+                margin-top: auto;
             }
 
-            #cookieconsent-button:hover,
-            #cookieconsent-button:focus {
-                background: #fff;
-                color: #333;
+            #cookieconsent-modal > :last-child {
+                margin-bottom: auto;
+            }
+
+            #cookieconsent-button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0;
+                border: 0;
+                border-radius: 3px;
+                background-color: var(--ayg-player-color, #3b82f6);
+                cursor: pointer;
+                padding: 0 20px;
+                min-height: 44px;
+                line-height: 1;
+                color: #fff;
+                font-family: inherit;
+                font-size: 1em;
+            }
+
+            #cookieconsent-button:hover {
+                opacity: 0.85;
+            }
+
+            #cookieconsent-button:focus-visible {
+                outline: 2px solid #fff;
+                outline-offset: 2px;
             }
 
             #root.cookieconsent {
@@ -137,11 +157,6 @@
             @media only screen and (max-width: 320px) {
                 #cookieconsent-modal {
                     gap: 0.5em;
-                }
-
-                #cookieconsent-button {
-                    border-radius: 2px;  
-                    padding: 0.35em 0.75em;   
                 }
             }
 
@@ -365,6 +380,9 @@
             this._cookieConsentButtonLabel = ayg_config.cookieconsent_button_label || '';
             this._ajaxUrl = ayg_config.ajax_url;
             this._ajaxNonce = ayg_config.ajax_nonce;
+
+            // Expose the Player Color to the template's CSS (the cookie consent button)
+            this.rootEl.style.setProperty( '--ayg-player-color', this._playerColor );
         }
 
         /**
@@ -382,6 +400,12 @@
             this._hasMuted = query.has( 'mute' ) && ( query.get( 'mute' ) == 1 || query.get( 'mute' ) == true );
             this._hasYTApiEnabled = query.has( 'enablejsapi' ) && ( query.get( 'enablejsapi' ) == 1 || query.get( 'enablejsapi' ) == true );  
             this._hideYouTubeLogo = query.has( 'modestbranding' ) && ( query.get( 'modestbranding' ) == 1 || query.get( 'modestbranding' ) == true );    
+
+            // Player type for this player only, ahead of the global setting (an upcoming livestream
+            // always uses YouTube's own player)
+            if ( this.getAttribute( 'player-type' ) ) {
+                this._playerType = this.getAttribute( 'player-type' );
+            }
             
             if ( this._playerType == 'custom' ) {
                 this._forcePlayerElement = true;
@@ -1574,7 +1598,10 @@
 			}
 		});
 
-		observer.observe( document.body, {
+		// document.body can be null in the iframed block editor, where jQuery's ready
+		// state comes from the parent document. documentElement always exists and
+		// subtree: true still catches <body> and everything inserted inside it.
+		observer.observe( document.body || document.documentElement, {
 			childList: true,
 			subtree: true
 		});

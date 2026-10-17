@@ -10,12 +10,10 @@
  */
 
 $gallery_settings = ayg_get_option( 'ayg_gallery_settings' );
-$player_settings  = ayg_get_option( 'ayg_player_settings' );
 
 $active_tab     = isset( $_GET['tab'] ) && array_key_exists( $_GET['tab'], $this->tabs ) ? sanitize_text_field( $_GET['tab'] ) : 'general';
 $active_section = isset( $_GET['section'] ) ? sanitize_text_field( $_GET['section'] ) : '';
 $active_theme   = $gallery_settings['theme'];
-$player_type    = isset( $player_settings['player_type'] ) ? $player_settings['player_type'] : 'youtube';
 
 $sections = array();
 foreach ( $this->sections as $section ) {
@@ -29,7 +27,7 @@ foreach ( $this->sections as $section ) {
 }
 ?>
 
-<div id="ayg-settings" class="ayg ayg-settings theme-<?php echo esc_attr( $active_theme ); ?> player_type-<?php echo esc_attr( $player_type ); ?> wrap">
+<div id="ayg-settings" class="ayg ayg-settings theme-<?php echo esc_attr( $active_theme ); ?> wrap">
     <h1><?php esc_html_e( 'Plugin Settings', 'automatic-youtube-gallery' ); ?></h1>
 
     <?php settings_errors(); ?>

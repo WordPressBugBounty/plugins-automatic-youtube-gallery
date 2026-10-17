@@ -11,10 +11,11 @@
 
 $player_width = ! empty( $attributes['player_width'] ) ? (int) $attributes['player_width'] . 'px' : '100%';
 $player_ratio = ! empty( $attributes['player_ratio'] ) ? (float) $attributes['player_ratio'] : 56.25;
+$state_class  = ! empty( $attributes['livestream_state'] ) ? ' ayg-livestream-' . sanitize_html_class( $attributes['livestream_state'] ) : '';
 
 $featured = $videos[0]; // Featured Video
 ?>
-<div id="ayg-<?php echo esc_attr( $attributes['uid'] ); ?>" class="ayg ayg-theme ayg-theme-livestream">
+<div id="ayg-<?php echo esc_attr( $attributes['uid'] ); ?>" class="ayg ayg-theme ayg-theme-livestream<?php echo esc_attr( $state_class ); ?>">
     <div class="ayg-player">
         <div class="ayg-player-container" style="max-width: <?php echo $player_width; ?>;">
             <?php
@@ -45,6 +46,13 @@ $featured = $videos[0]; // Featured Video
                     $attributes['poster'] = $featured->thumbnails->medium->url;
                 }
             } 
+
+            // An upcoming stream always uses YouTube's own player, which shows the countdown and starts
+            // the stream by itself. Not in the block editor (wp-admin, or its REST preview), where the
+            // Custom Video Player is forced to avoid YouTube's "Error 153".
+            if ( isset( $attributes['livestream_state'] ) && 'upcoming' == $attributes['livestream_state'] && ! is_admin() && ! ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+                $attributes['player_type'] = 'youtube';
+            }
 
             the_ayg_player( $featured, $attributes ); 
             ?>            

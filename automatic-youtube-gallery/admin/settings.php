@@ -274,7 +274,7 @@ class AYG_Admin_Settings {
             array(
                 'name'              => 'player_color',
                 'label'             => __( 'Player Color', 'automatic-youtube-gallery' ),	
-                'description'       => __( 'Set the theme color for your video player.', 'automatic-youtube-gallery' ),		
+                'description'       => __( 'Set the accent color used throughout the video player, such as the custom video player controls and the cookie consent button.', 'automatic-youtube-gallery' ),		
                 'type'              => 'color',
                 'sanitize_callback' => 'sanitize_text_field'
             )
@@ -303,9 +303,21 @@ class AYG_Admin_Settings {
         // Livestream Settings
         $fields['ayg_livestream_settings'] = array(
             array(
+                'name'              => 'offline_display',
+                'label'             => __( 'When No Stream Is Live', 'automatic-youtube-gallery' ),
+                'description'       => __( 'Choose what to show when the channel is not streaming live. If there is no recording or upcoming stream to show, the Fallback Message below is displayed instead.', 'automatic-youtube-gallery' ),
+                'type'              => 'select',
+                'options'           => array(
+                    'message'   => __( 'Show the Fallback Message', 'automatic-youtube-gallery' ),
+                    'recording' => __( 'Show the Latest Recording', 'automatic-youtube-gallery' ),
+                    'upcoming'  => __( 'Show the Next Upcoming Stream', 'automatic-youtube-gallery' )
+                ),
+                'sanitize_callback' => 'sanitize_key'
+            ),
+            array(
                 'name'              => 'fallback_message',
                 'label'             => __( 'Fallback Message', 'automatic-youtube-gallery' ),
-                'description'       => __( 'Enter your Custom HTML message that should be displayed when there is no video streaming live.', 'automatic-youtube-gallery' ),
+                'description'       => __( 'Enter your Custom HTML message that should be displayed when there is no video streaming live, or when the "When No Stream Is Live" option has nothing to show.', 'automatic-youtube-gallery' ),
                 'type'              => 'wysiwyg',
                 'sanitize_callback' => 'wp_kses_post'
             )
@@ -754,6 +766,29 @@ class AYG_Admin_Settings {
 		
         return $default;		
     }
+    
+    /**
+	 * Delete the cached livestream results when the Livestream settings change.
+	 *
+	 * They hold what each livestream gallery decided to show, which depends on these settings.
+	 * Only the livestream entries go; every other gallery keeps its cache.
+	 *
+	 * @since 2.9.2
+	 */
+	public function delete_livestream_cache() {
+		$keys      = (array) ayg_get_option( 'ayg_transient_keys' );
+		$remaining = array();
+
+		foreach ( $keys as $key ) {
+			if ( false !== strpos( $key, '_livestream_' ) ) {
+				delete_transient( $key );
+			} else {
+				$remaining[] = $key;
+			}
+		}
+
+		update_option( 'ayg_transient_keys', $remaining, false );
+	}
     
     /**
 	 * Dump our plugin transients.

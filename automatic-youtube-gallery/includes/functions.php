@@ -249,6 +249,12 @@ function ayg_build_gallery( $args ) {
 			$attributes = array_merge( $attributes, $api_params, $page_info );
 		}
 
+		// Livestream: what the lookup chose to show ("live", "recording" or "upcoming"). Its own key,
+		// since $attributes['livestream'] already holds the channel source.
+		if ( isset( $response->livestream ) ) {
+			$attributes['livestream_state'] = $response->livestream['state'];
+		}
+
 		// Theme
 		$theme = 'classic';
 
@@ -487,9 +493,12 @@ function ayg_db_gallery_has_videos( $gallery_id ) {
 /**
  * Get a single video record from our custom database table "{$wpdb->prefix}ayg_videos"
  *
+ * Only public videos are returned. A private or deleted video stored before 2.9.2 is treated
+ * as not found, so a deeplink to it shows neither the video nor its placeholder SEO tags.
+ *
  * @since  2.1.0
  * @param  string $video_id YouTube Video ID.
- * @return mixed
+ * @return mixed            The video record, or null if it isn't found or isn't public.
  */
 function ayg_db_get_video( $video_id ) {
 	global $wpdb;
@@ -513,6 +522,12 @@ function ayg_db_get_video( $video_id ) {
 		}
 	}
 
+	// Checked after the cache lookup, so a row cached before 2.9.2 by a persistent object cache
+	// is filtered too.
+	if ( $row && ( ! isset( $row->status ) || 'public' !== $row->status ) ) {
+		return null;
+	}
+
 	return $row;
 }
 
@@ -533,6 +548,11 @@ function ayg_db_store_videos( $data, $attributes = array() ) {
 	}
 
 	if ( empty( $data->items ) || ! is_array( $data->items ) ) {
+		return false;
+	}
+
+	// Livestream galleries never read their videos back from these tables, so store nothing for them
+	if ( isset( $attributes['type'] ) && 'livestream' === $attributes['type'] ) {
 		return false;
 	}
 
@@ -579,6 +599,11 @@ function ayg_db_store_videos( $data, $attributes = array() ) {
 
 		// Skip videos on the gallery's exclude list (kept out of both tables)
 		if ( ayg_is_video_excluded( $row['video_id'], $exclude ) ) {
+			continue;
+		}
+
+		// Skip playlist entries whose video was deleted or made private on YouTube
+		if ( ayg_is_video_unavailable( $item ) ) {
 			continue;
 		}
 
@@ -843,7 +868,7 @@ function ayg_get_default_settings() {
 		),
 		'ayg_player_settings' => array(
 			'player_type'           => 'youtube',
-			'player_color'          => '#00b3ff',
+			'player_color'          => '#3b82f6',
 			'player_width'          => '',
 			'player_ratio'          => 56.25,
 			'player_title'          => 1,
@@ -861,6 +886,7 @@ function ayg_get_default_settings() {
 			'origin'                => 0
 		),
 		'ayg_livestream_settings' => array(
+			'offline_display'  => 'recording',
 			'fallback_message' => __( 'Sorry, but the channel is not currently streaming live content. Please check back later.', 'automatic-youtube-gallery' )
 		),
 		'ayg_privacy_settings' => array(			
@@ -1760,6 +1786,32 @@ function ayg_is_video_excluded( $video_id, $exclude ) {
 	}
 
 	return false;
+}
+
+/**
+ * Check whether an API item points to a video that is no longer available.
+ *
+ * YouTube keeps the playlist entry for a video that is private (including one scheduled to
+ * publish later) or deleted, and returns it as a placeholder with no thumbnails: "Private video"
+ * with a "private" privacyStatus, or "Deleted video" with "privacyStatusUnspecified". Only
+ * public and unlisted entries can be played on the site.
+ *
+ * @since  2.9.2
+ * @param  object $item YouTube API response item.
+ * @return bool         True if the video is unavailable and should be skipped.
+ */
+function ayg_is_video_unavailable( $item ) {
+	// Only playlistItems.list responses carry these placeholder entries.
+	if ( ! isset( $item->kind ) || 'youtube#playlistItem' !== $item->kind ) {
+		return false;
+	}
+
+	// Every request asks for the status part; an item without it is treated as available.
+	if ( ! isset( $item->status->privacyStatus ) ) {
+		return false;
+	}
+
+	return ! in_array( $item->status->privacyStatus, array( 'public', 'unlisted' ), true );
 }
 
 /**

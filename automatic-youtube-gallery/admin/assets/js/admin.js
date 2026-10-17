@@ -479,19 +479,6 @@
 			$wrapper.addClass( 'theme-' + value );
 		});
 
-		// Settings: Toggle fields based on the player type
-		$( '#ayg-settings' ).on( 'change', 'tr.player_type input[type="radio"]', function() {	
-			const $wrapper = $( '#ayg-settings' );		
-			const value    = $wrapper.find( 'tr.player_type input[type="radio"]:checked' ).val();			
-
-			$wrapper.removeClass(function( index, classes ) {
-				const matches = classes.match( /player_type-\S+/ig );
-				return ( matches ) ? matches.join( ' ' ) : '';
-			});
-
-			$wrapper.addClass( 'player_type-' + value );
-		});
-
 		// Settings: Upload button
 		$( '.ayg-button-upload-media' ).on( 'click', function( event ) {																	  
 			event.preventDefault();			

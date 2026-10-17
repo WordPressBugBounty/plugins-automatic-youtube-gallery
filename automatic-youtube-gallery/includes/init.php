@@ -149,12 +149,14 @@ class AYG_Init {
 		$this->loader->add_action( 'wp_ajax_ayg_delete_gallery', $admin, 'ajax_callback_delete_gallery' );
 		
 		$this->loader->add_filter( 'plugin_action_links_' . AYG_FILE_NAME, $admin, 'plugin_action_links' );
+		$this->loader->add_filter( 'submenu_file', $admin, 'submenu_file' );
 
 		// Hooks specific to the settings page
 		$settings = new AYG_Admin_Settings();
 		
 		$this->loader->add_action( 'admin_menu', $settings, 'admin_menu' );
 		$this->loader->add_action( 'admin_init', $settings, 'admin_init' );
+		$this->loader->add_action( 'update_option_ayg_livestream_settings', $settings, 'delete_livestream_cache' );
 		$this->loader->add_action( 'wp_ajax_ayg_delete_cache', $settings, 'ajax_callback_delete_cache' );		
 	}
 

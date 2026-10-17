@@ -41,12 +41,22 @@ if ( ! empty( $general_settings['api_key'] ) ) {
 			<div class="wp-badge"><?php printf( esc_html__( 'Version %s', 'automatic-youtube-gallery' ), AYG_VERSION ); ?></div>
 
 			<?php if ( 'gallery-list' === $file ) : ?>
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=automatic-youtube-gallery&action=new' ) ); ?>" class="ayg-button button button-primary button-hero">
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z" />
-					</svg>
-					<?php esc_html_e( 'Add New Gallery', 'automatic-youtube-gallery' ); ?>
-				</a>
+				<div class="ayg-dashboard-actions">
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=automatic-youtube-gallery&action=new' ) ); ?>" class="ayg-button button button-primary button-hero">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z" />
+						</svg>
+						<?php esc_html_e( 'Add New Gallery', 'automatic-youtube-gallery' ); ?>
+					</a>
+
+					<a href="<?php echo esc_url( 'https://plugins360.com/automatic-youtube-gallery/documentation/' ); ?>" class="ayg-button button button-hero" target="_blank" rel="noopener noreferrer">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+						</svg>
+						<?php esc_html_e( 'Help & Tutorials', 'automatic-youtube-gallery' ); ?>
+						<span class="screen-reader-text"><?php esc_html_e( '(opens in a new tab)', 'automatic-youtube-gallery' ); ?></span>
+					</a>
+				</div>
 			<?php endif; ?>
 		</div>
 	<?php endif; ?>

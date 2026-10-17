@@ -89,7 +89,7 @@ class AYG_Public {
 			'current_page_url'      => get_permalink(),
 			'current_gallery_id'    => get_query_var( 'ayg_gallery_id' ),					
 			'player_type'           => $player_type,
-			'player_color'          => isset( $player_settings['player_color'] ) ? sanitize_text_field( $player_settings['player_color'] ) : '#00b3ff',	
+			'player_color'          => isset( $player_settings['player_color'] ) ? sanitize_text_field( $player_settings['player_color'] ) : '#3b82f6',	
 			'privacy_enhanced_mode' => isset( $player_settings['privacy_enhanced_mode'] ) ? (int) $player_settings['privacy_enhanced_mode'] : 0,
 			'origin'                => '',
 			'cookieconsent'         => 0,

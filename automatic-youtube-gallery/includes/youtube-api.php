@@ -533,45 +533,264 @@ class AYG_YouTube_API {
 	}	
 
 	/**
-	 * Get live video using search API.
-	 * 
+	 * Get the live stream to show, from the channel's live-streams playlist.
+	 *
+	 * Reads the newest 50 entries of the channel's "UULV" playlist (its live, upcoming and past live
+	 * streams), looks up their broadcast details and picks what to show: the most recently started
+	 * live stream, otherwise what the "When No Stream Is Live" setting asks for, otherwise the
+	 * Fallback Message. That costs 2 units of the regular API quota and no search.list call.
+	 *
+	 * "UULV" is not a documented playlist prefix, so if YouTube ever rejects it the channel's
+	 * uploads playlist is read instead. It holds the same streams among the regular uploads.
+	 *
 	 * @since  2.3.7
 	 * @access private
      * @param  array   $params Array of query params.
      * @return mixed
      */
     private function request_api_live_video( $params = array() ) {
-		$api_url = $this->get_api_url( 'search.list' );
+		$livestream_settings = ayg_get_option( 'ayg_livestream_settings' );
 
-		$params['type'] = 'video'; // Overrides user defined type value 'livestream'
+		// The outcome is cached as a whole, for as long as get_livestream_cache_duration() decides.
+		// Prefixed with the gallery uid so ayg_delete_cache( $uid ) clears it with the gallery, and
+		// marked "_livestream_" so saving the Livestream settings can clear every livestream result.
+		$cache_uid = isset( $params['uid'] ) ? (string) $params['uid'] : '';
+		$cache_key = 'ayg_' . ( '' !== $cache_uid ? $cache_uid . '_' : '' ) . 'livestream_' . md5( $params['channelId'] );
+		$can_cache = ! $this->is_development_mode && isset( $params['cache'] ) && (int) $params['cache'] > 0;
 
-		$api_params = $this->safe_merge_params(
-			array(
-				'type'      => 'video',
-				'eventType' => 'live',
-				'part'      => 'snippet',
-				'channelId' => '',
-				'cache'     => 0
-			),
-			$params
+		if ( $can_cache ) {
+			$cache_data = get_transient( $cache_key );
+
+			if ( ! empty( $cache_data ) ) {
+				return $cache_data;
+			}
+		}
+
+		// A video URL as the source pins that stream: it plays first whenever it is live, even if a
+		// newer stream has started. A channel ID or /channel/ URL pins nothing.
+		$pinned_id = '';
+
+		if ( '' === $this->parse_youtube_id_from_url( $params['src'], 'channel' ) ) {
+			$pinned_id = $this->parse_youtube_id_from_url( $params['src'], 'video' );
+		}
+
+		// The live-streams playlist ID is the channel ID with "UC" replaced by "UULV"
+		$items = $this->request_api_live_streams( 'UULV' . substr( $params['channelId'], 2 ), $pinned_id );
+
+		// Safety net: read the channel's uploads playlist if YouTube rejects the request
+		if ( is_object( $items ) && isset( $items->error ) ) {
+			$playlist_id = $this->get_playlist_id( array( 'id' => $params['channelId'] ) );
+
+			if ( is_object( $playlist_id ) && isset( $playlist_id->error ) ) {
+				return $playlist_id;
+			}
+
+			if ( empty( $playlist_id ) ) {
+				return $items;
+			}
+
+			$items = $this->request_api_live_streams( $playlist_id, $pinned_id );
+
+			if ( is_object( $items ) && isset( $items->error ) ) {
+				return $items;
+			}
+		}
+
+		// Group the streams anyone can watch on this site: live now, finished and scheduled
+		$groups = array(
+			'live'      => array(),
+			'recording' => array(),
+			'upcoming'  => array()
 		);
 
-		$api_response = $this->request_api( $api_url, $api_params, 'live' );
+		$times        = array(); // Video ID => the time its group is sorted by
+		$stream_times = array(); // Video ID => its broadcast times
+		$now          = time();
+
+		foreach ( $items as $item ) {
+			if ( ! isset( $item->status ) || 'public' !== $item->status->privacyStatus || empty( $item->status->embeddable ) ) {
+				continue;
+			}
+
+			// Regular uploads (only in the uploads playlist) carry no live streaming details
+			if ( ! isset( $item->liveStreamingDetails ) ) {
+				continue;
+			}
+
+			$details   = $item->liveStreamingDetails;
+			$broadcast = isset( $item->snippet->liveBroadcastContent ) ? $item->snippet->liveBroadcastContent : 'none';
+
+			if ( 'live' === $broadcast && ! empty( $details->actualStartTime ) ) {
+				$state = 'live';
+				$time  = strtotime( $details->actualStartTime );
+			} elseif ( 'upcoming' === $broadcast && ! empty( $details->scheduledStartTime ) ) {
+				$state = 'upcoming';
+				$time  = strtotime( $details->scheduledStartTime );
+
+				// Scheduled more than 30 minutes ago and never started: an abandoned placeholder
+				if ( $time < $now - 1800 ) {
+					continue;
+				}
+			} elseif ( 'none' === $broadcast && ! empty( $details->actualEndTime ) ) {
+				$state = 'recording';
+				$time  = strtotime( $details->actualEndTime );
+			} else {
+				continue;
+			}
+
+			$groups[ $state ][] = $item;
+			$times[ $item->id ] = $time;
+
+			// Broadcast times (UTC timestamps, 0 when not set), added to the video objects below
+			$stream_times[ $item->id ] = array(
+				'live_start'      => ! empty( $details->actualStartTime ) ? strtotime( $details->actualStartTime ) : 0,
+				'live_end'        => ! empty( $details->actualEndTime ) ? strtotime( $details->actualEndTime ) : 0,
+				'scheduled_start' => ! empty( $details->scheduledStartTime ) ? strtotime( $details->scheduledStartTime ) : 0
+			);
+		}
+
+		// Most recently started live stream first, newest recording first, earliest upcoming first
+		foreach ( $groups as $state => $group_items ) {
+			if ( empty( $group_items ) ) {
+				continue;
+			}
+
+			$videos = $this->parse_videos( (object) array( 'items' => $group_items ) );
+
+			if ( isset( $videos->error ) ) {
+				$groups[ $state ] = array();
+				continue;
+			}
+
+			foreach ( $videos as $video ) {
+				$video->live_start      = $stream_times[ $video->id ]['live_start'];
+				$video->live_end        = $stream_times[ $video->id ]['live_end'];
+				$video->scheduled_start = $stream_times[ $video->id ]['scheduled_start'];
+			}
+
+			$order = ( 'upcoming' === $state ) ? 1 : -1;
+
+			usort( $videos, function ( $a, $b ) use ( $times, $order ) {
+				if ( $times[ $a->id ] == $times[ $b->id ] ) {
+					return 0;
+				}
+
+				return ( $times[ $a->id ] < $times[ $b->id ] ) ? -$order : $order;
+			} );
+
+			// The pinned stream goes first while it is live
+			if ( 'live' === $state && '' !== $pinned_id ) {
+				foreach ( $videos as $index => $video ) {
+					if ( $video->id === $pinned_id ) {
+						unset( $videos[ $index ] );
+						array_unshift( $videos, $video );
+						break;
+					}
+				}
+			}
+
+			// Let a snippet drop or reorder the candidates of each state ("live", "recording" or
+			// "upcoming"). The first video left is the one shown.
+			$videos = apply_filters( 'ayg_livestream_candidates', $videos, $state, $params );
+
+			$groups[ $state ] = is_array( $videos ) ? array_values( $videos ) : array();
+		}
+
+		// What to show when nothing is live. A saved option without the key belongs to an existing
+		// install that hasn't run insert_missing_options() since the update: keep the Fallback Message.
+		$saved_settings  = get_option( 'ayg_livestream_settings' );
+		$offline_display = ( is_array( $saved_settings ) && ! isset( $saved_settings['offline_display'] ) ) ? 'message' : $livestream_settings['offline_display'];
+
+		$state = 'message';
+
+		if ( ! empty( $groups['live'] ) ) {
+			$state = 'live';
+		} elseif ( in_array( $offline_display, array( 'recording', 'upcoming' ), true ) && ! empty( $groups[ $offline_display ] ) ) {
+			$state = $offline_display;
+		}
+
+		$livestream = array(
+			'state'      => $state,
+			'next_start' => ! empty( $groups['upcoming'][0]->scheduled_start ) ? (int) $groups['upcoming'][0]->scheduled_start : 0, // UTC timestamp, 0 when nothing is scheduled
+			'checked_at' => $now
+		);
+
+		if ( 'message' === $state ) {
+			$response = $this->get_error( '<div class="ayg-livestream-fallback-message">' . $livestream_settings['fallback_message'] . '</div>' );
+			$response->livestream = $livestream;
+		} else {
+			// Process output
+			$response = new stdClass();
+			$response->videos     = array( $groups[ $state ][0] );
+			$response->livestream = $livestream;
+		}
+
+		// API errors returned above are never cached; this outcome is, Fallback Message included
+		if ( $can_cache ) {
+			$cache_duration = $this->get_livestream_cache_duration( $livestream, $params );
+
+			if ( $cache_duration > 0 ) {
+				$this->set_cache( $cache_key, $response, $cache_duration );
+			}
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Get the broadcast details of the newest entries in a live-streams (or uploads) playlist.
+	 *
+	 * @since  2.9.2
+	 * @access private
+	 * @param  string $playlist_id YouTube playlist ID.
+	 * @param  string $pinned_id   Optional. A video ID to look up in the same videos.list request,
+	 *                             in place of the 50th playlist entry, so it costs nothing extra.
+	 * @return mixed               Array of videos.list items (empty when there is nothing to look
+	 *                             up), or an error object.
+	 */
+	private function request_api_live_streams( $playlist_id, $pinned_id = '' ) {
+		// The newest playlist entries (50, or 49 plus the pinned video). Only their video IDs are needed.
+		$api_params = array(
+			'playlistId' => $playlist_id,
+			'part'       => 'contentDetails',
+			'maxResults' => ( '' !== $pinned_id ) ? 49 : 50
+		);
+
+		$api_response = $this->request_api( $this->get_api_url( 'playlistItems.list' ), $api_params );
 		if ( isset( $api_response->error ) ) {
 			return $api_response;
 		}
 
-		$videos = $this->parse_videos( $api_response );
-		if ( isset( $videos->error ) ) {
-			$livestream_settings = ayg_get_option( 'ayg_livestream_settings' );
-			return $this->get_error( '<div class="ayg-livestream-fallback-message">' . $livestream_settings['fallback_message'] . '</div>' );
+		$video_ids = array();
+
+		if ( ! empty( $api_response->items ) && is_array( $api_response->items ) ) {
+			foreach ( $api_response->items as $item ) {
+				if ( isset( $item->contentDetails->videoId ) ) {
+					$video_ids[] = $item->contentDetails->videoId;
+				}
+			}
 		}
 
-		// Process output
-		$response = new stdClass();
-		$response->videos = $videos;
+		if ( '' !== $pinned_id && ! in_array( $pinned_id, $video_ids, true ) ) {
+			$video_ids[] = $pinned_id;
+		}
 
-		return $response;	
+		if ( empty( $video_ids ) ) {
+			return array();
+		}
+
+		// Broadcast state and times, privacy and embeddability of each video
+		$api_params = array(
+			'id'   => implode( ',', $video_ids ),
+			'part' => 'id,snippet,status,liveStreamingDetails'
+		);
+
+		$api_response = $this->request_api( $this->get_api_url( 'videos.list' ), $api_params );
+		if ( isset( $api_response->error ) ) {
+			return $api_response;
+		}
+
+		return ( ! empty( $api_response->items ) && is_array( $api_response->items ) ) ? $api_response->items : array();
 	}
 
 	/**
@@ -703,10 +922,12 @@ class AYG_YouTube_API {
 
 		$gallery_id = $params['uid'];
 
-		// Base query: every video linked to this gallery. An optional search term (the search
-		// form) narrows it by title/description; the "db" source type passes none and gets all.
-		$where  = 'r.gallery_id = %s';
-		$values = array( $gallery_id );
+		// Base query: every public video linked to this gallery. Private and deleted entries stored
+		// before 2.9.2 stay linked until the next "Update Gallery", so they are left out here. An
+		// optional search term (the search form) narrows it by title/description; the "db" source
+		// type passes none and gets all.
+		$where  = 'r.gallery_id = %s AND v.status = %s';
+		$values = array( $gallery_id, 'public' );
 
 		if ( ! empty( $params['searchTerm'] ) ) {
 			$search_term = '%' . $wpdb->esc_like( $params['searchTerm'] ) . '%';
@@ -872,7 +1093,7 @@ class AYG_YouTube_API {
 	 * @access private
      * @param  string  $url     YouTube API URL.
      * @param  array   $params  Array of query params.
-	 * @param  string  $context "channel_id", "playlist_id", "videos", or "live"
+	 * @param  string  $context "channel_id", "playlist_id", or "videos"
      * @return mixed     
      */
     private function request_api( $url, $params, $context = 'videos' ) {
@@ -943,25 +1164,10 @@ class AYG_YouTube_API {
 					$cache_enabled = true;
 				}
 			}
-
-			if ( 'live' === $context ) {
-				$cache_enabled = true;
-			}
 		}
 
 		if ( $cache_enabled ) {
-			set_transient( $cache_key, $data, $cache_duration );
-
-			// Get the current list of transients
-			$cache_keys = ayg_get_option( 'ayg_transient_keys' );
-
-			// Append our new one
-			if ( ! in_array( $cache_key, $cache_keys ) ) {
-				$cache_keys[] = $cache_key;
-			}
-
-			// Save it to the DB (autoload=no: this list can grow large and is not needed on every page load)
-			update_option( 'ayg_transient_keys', $cache_keys, false );
+			$this->set_cache( $cache_key, $data, $cache_duration );
 		}		
 
 		// Store videos in our custom database table "{$wpdb->prefix}ayg_videos"
@@ -984,6 +1190,65 @@ class AYG_YouTube_API {
 
 		// Finally return the data
 		return $data;
+	}
+
+	/**
+	 * Store a value as a transient and register its key.
+	 *
+	 * The key is added to the "ayg_transient_keys" option so ayg_delete_cache() can find and clear
+	 * it later, either with every plugin transient or with just its gallery's.
+	 *
+	 * @since  2.9.2
+	 * @access private
+	 * @param  string $cache_key      Transient key.
+	 * @param  mixed  $data           Value to cache.
+	 * @param  int    $cache_duration Lifetime in seconds.
+	 */
+	private function set_cache( $cache_key, $data, $cache_duration ) {
+		set_transient( $cache_key, $data, $cache_duration );
+
+		// Get the current list of transients
+		$cache_keys = ayg_get_option( 'ayg_transient_keys' );
+
+		// Append our new one
+		if ( ! in_array( $cache_key, $cache_keys ) ) {
+			$cache_keys[] = $cache_key;
+		}
+
+		// Save it to the DB (autoload=no: this list can grow large and is not needed on every page load)
+		update_option( 'ayg_transient_keys', $cache_keys, false );
+	}
+
+	/**
+	 * Work out how long a livestream lookup stays cached.
+	 *
+	 * Checks often while a stream is live, so the end is noticed, and every 15 minutes otherwise,
+	 * so an unscheduled stream is noticed too. A scheduled start shortens the wait: the check lands
+	 * 2 minutes before it (some channels go live early), then repeats every 2 minutes until the
+	 * stream starts or is dropped as abandoned. The gallery's own "cache" value stays the upper limit.
+	 *
+	 * @since  2.9.2
+	 * @access private
+	 * @param  array   $livestream The lookup outcome: "state", "next_start" and "checked_at".
+	 * @param  array   $params     Array of query params.
+	 * @return int                 Cache duration in seconds.
+	 */
+	private function get_livestream_cache_duration( $livestream, $params ) {
+		$cache_duration = 900;
+
+		if ( 'live' === $livestream['state'] ) {
+			$cache_duration = 300;
+		} elseif ( $livestream['next_start'] > 0 ) {
+			$until_start = $livestream['next_start'] - 120 - $livestream['checked_at'];
+
+			// More than 2 minutes to go: wait until then, within the usual 15 minutes. Otherwise
+			// the start is close or overdue, so check every 2 minutes.
+			$cache_duration = ( $until_start > 0 ) ? min( 900, max( 60, $until_start ) ) : 120;
+		}
+
+		$cache_duration = (int) apply_filters( 'ayg_livestream_cache_duration', $cache_duration, $livestream['state'], $params );
+
+		return min( (int) $params['cache'], max( 0, $cache_duration ) );
 	}
 
 	/**
@@ -1027,6 +1292,11 @@ class AYG_YouTube_API {
 
 			// Skip videos on the gallery's exclude list
 			if ( ayg_is_video_excluded( $video->id, $exclude ) ) {
+				continue;
+			}
+
+			// Skip playlist entries whose video was deleted or made private on YouTube
+			if ( ayg_is_video_unavailable( $item ) ) {
 				continue;
 			}
 

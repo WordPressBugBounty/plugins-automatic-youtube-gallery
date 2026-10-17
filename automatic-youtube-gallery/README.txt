@@ -6,7 +6,7 @@ Tags: youtube gallery, youtube playlist, youtube channel, youtube embed, youtube
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 5.6.20
-Stable tag: 2.9.1
+Stable tag: 2.9.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,8 +101,8 @@ Also, we answer all support requests [on the WordPress.org support forum](https:
 3. Click on Upload, so you can directly upload your plugin zip file.
 4. Use the browse button to select the plugin zip file that was downloaded, and then click on Install Now.
 5. Once installed, click "Activate".
-6. Then, go to the plugin dashboard, and configure your "YouTube API Key" as per the instructions given on the page. Save the changes.
-7. That's it. Now, you can start building your galleries straight away from the plugin dashboard.
+6. Then, go to YouTube Gallery → All Galleries, and configure your "YouTube API Key" as per the instructions given on the page. Save the changes.
+7. That's it. Now, you can start building your galleries straight away from YouTube Gallery → Add New Gallery.
 
 For more detailed instructions visit plugin [documentation](https://plugins360.com/automatic-youtube-gallery/documentation/).
 
@@ -120,13 +120,25 @@ Yes, a free YouTube Data API key is required to fetch your videos. It only takes
 
 Yes. Choose an import schedule per gallery (hourly, daily, weekly, or monthly) and a background sync keeps it up to date automatically. Need the newest videos right away? Open the gallery and click "Update Gallery" for an instant refresh.
 
+Private videos (including ones scheduled to publish later) and deleted videos are skipped, and a video is added at the next sync once it becomes public. If an older video you've made public doesn't appear, click "Update Gallery".
+
 = 4. Can I show or hide YouTube Shorts in my gallery? =
 
 Yes. Each gallery has a "Filter by Duration" option — set it to "Shorter Than 60 seconds" to build a Shorts-only gallery, or "Longer Than 60 seconds" to hide Shorts. There is also a 9:16 vertical aspect ratio for Shorts thumbnails and the player.
 
 = 5. Can I embed a YouTube live stream? =
 
-Yes. Select the "Livestream" source type to auto-embed the currently live video from any YouTube channel. When the channel is not streaming, the plugin displays a customizable fallback message instead.
+Yes. Select the "Livestream" source type and enter a YouTube channel ID (or a video URL from the channel), and the plugin embeds whatever the channel is streaming live. If the channel is running several live streams at once, the one that started most recently is shown, unless you entered the URL of one of them: that stream is then shown whenever it is live.
+
+When the channel is not live, choose what to show under YouTube Gallery → Settings → Livestream → "When No Stream Is Live":
+
+* "Show the Latest Recording" — the channel's most recent finished live stream.
+* "Show the Next Upcoming Stream" — the next scheduled stream, in YouTube's own player with its countdown.
+* "Show the Fallback Message" — your own custom message.
+
+If there is no recording or upcoming stream to show, the "Fallback Message" is displayed instead.
+
+On channels that start several new streams every day, a stream that has been live for months may not be found. In that case, enter that stream's video URL instead of the channel ID.
 
 = 6. Will the plugin slow down my website? =
 
@@ -173,6 +185,17 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 10. API Key Setup — configure the free YouTube Data API key in minutes
 
 == Changelog ==
+
+= 2.9.2 =
+
+* New: Livestream galleries can now show the channel's latest recording or its next upcoming stream when nothing is live. Choose under YouTube Gallery → Settings → Livestream → "When No Stream Is Live". An upcoming stream is shown in YouTube's own player with its countdown. Existing sites keep showing the Fallback Message until you change the setting.
+* New: Introduced `ayg_livestream_candidates` and `ayg_livestream_cache_duration` filter hooks.
+* Tweak: The "Player Color" setting under YouTube Gallery → Settings → Player is now shown for both player types.
+* Tweak: The cookie consent button now uses the "Player Color", the player now uses a consistent system font, and a long consent message scrolls on small screens instead of being cut off.
+* Tweak: Updated Freemius SDK to version 2.13.5.
+* Fix: Livestream galleries now find streams that have been live for a long time, such as 24/7 wildlife cams, which YouTube's search often missed. They no longer use YouTube's search, and they pick up a stream starting or ending within minutes instead of up to a day.
+* Fix: Private and deleted YouTube videos no longer appear in galleries as blank "Private video" or "Deleted video" entries, including ones imported by an earlier version.
+* Fix: Various minor bug fixes and performance enhancements.
 
 = 2.9.1 =
 
@@ -418,6 +441,6 @@ All of the security issues above were discovered and reported responsibly to us 
 
 == Upgrade Notice ==
 
-= 2.9.1 =
+= 2.9.2 =
 
-Compatibility release. Tested with WordPress 7.1. No functional changes — your existing shortcodes, blocks and widgets keep working unchanged.
+Livestream galleries can now show the latest recording or the next upcoming stream when nothing is live, and find long-running streams reliably. Private and deleted videos no longer appear in galleries. Your existing shortcodes, blocks and widgets keep working unchanged.

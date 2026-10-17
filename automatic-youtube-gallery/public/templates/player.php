@@ -58,6 +58,11 @@ if ( ! empty( $attributes['lazyload'] ) ) {
     $video_attributes['lazyload'] = '';
 }
 
+// Player type for this player only, ahead of the global setting (set by the livestream theme)
+if ( ! empty( $attributes['player_type'] ) ) {
+    $video_attributes['player-type'] = esc_attr( $attributes['player_type'] );
+}
+
 $player_html = sprintf( '<ayg-player %s></ayg-player>', ayg_combine_video_attributes( $video_attributes ) );
 
 // Allow filtering before output

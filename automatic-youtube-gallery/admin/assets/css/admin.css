@@ -490,6 +490,13 @@
 	margin: 0;
 }
 
+#ayg-dashboard .about-wrap .ayg-dashboard-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 1em;
+}
+
 #ayg-dashboard .about-wrap .wp-badge {
 	margin: 0;
 	border-radius: 4px;
@@ -522,6 +529,10 @@
 
 	#ayg-dashboard .about-wrap .button {
 		width: 100%;
+	}
+
+	#ayg-dashboard .about-wrap .ayg-dashboard-actions {
+		flex-direction: column;
 	}
 }
 
@@ -562,9 +573,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 1.5em;
-	margin: 0 auto;
 	width: 100%;
-	max-width: 900px;
 }
 
 .ayg-gallery-form .ayg-back-to-galleries-link a {
@@ -757,10 +766,6 @@
 
 #ayg-table-delete-cache {
 	margin-top: 0;
-}
-
-#ayg-settings.player_type-youtube tr.player_color {
-	display: none;
 }
 
 /*----------------------------------------------------------------------------------------------
