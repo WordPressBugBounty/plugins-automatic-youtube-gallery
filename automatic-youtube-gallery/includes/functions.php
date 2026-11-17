@@ -309,12 +309,31 @@ function ayg_combine_video_attributes( $atts ) {
 /**
  * Create custom database tables
  *
- * @since 2.1.0
+ * Runs on activation and whenever the stored plugin version changes, so every step is guarded
+ * and safe to re-run.
+ *
+ * @since  2.1.0
+ * @since  2.9.3 Runs in one request at a time, skips the duplicate clean-up once the unique key
+ *               exists, removes duplicates in short batches within a time budget, and returns
+ *               whether it finished.
+ * @return bool  True when the migration finished. False when another request is running it, when
+ *               the duplicate clean-up stopped part-way, or when it is left for an admin page load
+ *               because this is an AJAX request. Either way it should run again.
  */
 function ayg_db_create_custom_tables() {
 	global $wpdb;
 
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+	require_once( ABSPATH . 'wp-admin/includes/class-wp-upgrader.php' );
+
+	// Only one request runs the migration at a time. Without this, admin page loads, Heartbeat and
+	// AJAX requests arriving together each started their own copy and blocked one another on the
+	// same rows. Five minutes outlives any single request, so an expired lock never belongs to a
+	// live one, and a request that died mid-way delays the next attempt by five minutes at most.
+	if ( ! WP_Upgrader::create_lock( 'ayg_db_upgrade', 5 * MINUTE_IN_SECONDS ) ) {
+		return false;
+	}
+
 	$charset_collate = $wpdb->get_charset_collate();
 
 	$videos_table = $wpdb->prefix . 'ayg_videos';
@@ -345,6 +364,9 @@ function ayg_db_create_custom_tables() {
 	// Each ALTER is guarded so the block is idempotent on re-runs.
 	$videos_table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $videos_table ) ) ) === $videos_table;
 
+	// True while the duplicate clean-up below has stopped part-way with rows left to check.
+	$dedupe_pending = false;
+
 	if ( $videos_table_exists ) {
 		// Rename 'id' → 'video_id' first. Must happen before NUM → id to avoid a duplicate
 		// column name error: if NUM were renamed to 'id' while the varchar 'id' still exists,
@@ -362,13 +384,101 @@ function ayg_db_create_custom_tables() {
 			$wpdb->query( "ALTER TABLE `$videos_table` CHANGE `NUM` `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT" );
 		}
 
-		// Remove duplicate rows using the new column names (idempotent).
-		$wpdb->query(
-			"DELETE v1 FROM $videos_table v1
-			INNER JOIN $videos_table v2
-			ON v1.video_id = v2.video_id AND v1.id > v2.id"
-		);
+		// Remove duplicate rows, but only while the unique key is missing. Once it exists the
+		// database itself rejects duplicates, so there is nothing to clean up — and without this
+		// check every update ran a self-join over the whole table.
+		$has_unique_key = ! empty( $wpdb->get_results( "SHOW KEYS FROM `$videos_table` WHERE Key_name = 'ayg_unique_video_id'" ) );
+
+		if ( ! $has_unique_key && wp_doing_ajax() ) {
+			// admin_init also fires in admin-ajax.php, including visitors' gallery requests. Never
+			// make one of those wait on the clean-up below (building its index alone can take a
+			// while on a large table). Report the migration as unfinished instead, so the version
+			// is held and the next admin page load, or activation, does the clean-up.
+			$dedupe_pending = true;
+		} elseif ( ! $has_unique_key ) {
+			// A single self-join DELETE over a table without an index on video_id scans the
+			// table once per row: on a large table it outlived the host's statement time limit
+			// and held locks the whole time. Instead, index video_id first, then delete in short
+			// batches that each commit on their own, and stop after a time budget so wp-admin
+			// stays usable. The position is saved, so the next run carries on from there.
+			$dedupe_deadline = microtime( true ) + 10;
+			$dedupe_batch    = 5000;
+
+			$has_tmp_index = ! empty( $wpdb->get_results( "SHOW KEYS FROM `$videos_table` WHERE Key_name = 'ayg_tmp_video_id'" ) );
+
+			if ( ! $has_tmp_index ) {
+				$has_tmp_index = false !== $wpdb->query( "ALTER TABLE `$videos_table` ADD INDEX ayg_tmp_video_id (video_id)" );
+			}
+
+			// Without the index the delete is the slow one this replaces, so skip the clean-up
+			// rather than risk it. The update then finishes as it did before 2.9.3.
+			if ( $has_tmp_index ) {
+				$cursor     = (int) get_option( 'ayg_db_dedupe_cursor', 0 );
+				$progressed = false;
+				$finished   = false;
+
+				// At least one batch per run, even if building the index used up the budget, so
+				// every run makes progress.
+				do {
+					// The id 5,000 rows past the cursor. Ids are sparse, so a batch counts rows
+					// rather than spanning a fixed id range. Fewer rows left: the last one is the end.
+					$batch_end = $wpdb->get_var(
+						$wpdb->prepare(
+							"SELECT id FROM `$videos_table` WHERE id > %d ORDER BY id LIMIT 1 OFFSET %d",
+							$cursor,
+							$dedupe_batch - 1
+						)
+					);
+
+					if ( null === $batch_end && '' === $wpdb->last_error ) {
+						$batch_end = $wpdb->get_var( "SELECT MAX(id) FROM `$videos_table`" );
+					}
+
+					// A failed query also returns null. Stop rather than mistake it for the end of
+					// the table, which would delete the whole remaining range in one statement.
+					if ( '' !== $wpdb->last_error ) {
+						break;
+					}
+
+					if ( null === $batch_end || (int) $batch_end <= $cursor ) {
+						$finished = true;
+						break;
+					}
+
+					// Delete every row in the batch that has an older copy. The oldest copy of each
+					// video is never deleted, so exactly one row per video_id is kept.
+					$deleted = $wpdb->query(
+						$wpdb->prepare(
+							"DELETE v1 FROM `$videos_table` v1
+							INNER JOIN `$videos_table` v2 ON v1.video_id = v2.video_id AND v1.id > v2.id
+							WHERE v1.id > %d AND v1.id <= %d",
+							$cursor,
+							(int) $batch_end
+						)
+					);
+
+					if ( false === $deleted ) {
+						break;
+					}
+
+					$cursor     = (int) $batch_end;
+					$progressed = true;
+
+					update_option( 'ayg_db_dedupe_cursor', $cursor, false );
+				} while ( microtime( true ) < $dedupe_deadline );
+
+				// Hold the update back only while the clean-up is making progress. A batch that
+				// fails before any progress in this run would fail on every run, and blocking the
+				// update for good would stop videos being stored at all (ayg_db_store_videos()),
+				// so give up and finish the update as before 2.9.3.
+				$dedupe_pending = ! $finished && $progressed;
+			}
+		}
 	}
+
+	// While the duplicate clean-up is unfinished, leave the unique key out: dbDelta would try to
+	// add it and fail on the remaining duplicates. dbDelta never drops an index, so this is safe.
+	$unique_key_sql = $dedupe_pending ? '' : "UNIQUE KEY ayg_unique_video_id (video_id),\n\t\t";
 
 	// Create/update wp_ayg_videos — dbDelta adds the 2 new columns on existing installs.
 	$sql = "CREATE TABLE $videos_table (
@@ -384,17 +494,26 @@ function ayg_db_create_custom_tables() {
 		published_at varchar(100) NOT NULL,
 		published_at_datetime datetime NULL,
 		PRIMARY KEY  (id),
-		UNIQUE KEY ayg_unique_video_id (video_id),
-		INDEX ayg_idx_published_at_datetime (published_at_datetime)
+		{$unique_key_sql}INDEX ayg_idx_published_at_datetime (published_at_datetime)
 	) $charset_collate;";
 
 	dbDelta( $sql );
 
-	// Fallback: add UNIQUE KEY if dbDelta did not create it (edge case on existing installs).
-	$existing_keys = $wpdb->get_results( "SHOW KEYS FROM $videos_table WHERE Key_name = 'ayg_unique_video_id'" );
-	
-	if ( empty( $existing_keys ) ) {
-		$wpdb->query( "ALTER TABLE $videos_table ADD UNIQUE KEY ayg_unique_video_id (video_id)" );
+	if ( ! $dedupe_pending ) {
+		// Fallback: add UNIQUE KEY if dbDelta did not create it (edge case on existing installs).
+		$existing_keys = $wpdb->get_results( "SHOW KEYS FROM $videos_table WHERE Key_name = 'ayg_unique_video_id'" );
+
+		if ( empty( $existing_keys ) ) {
+			$wpdb->query( "ALTER TABLE $videos_table ADD UNIQUE KEY ayg_unique_video_id (video_id)" );
+		}
+
+		// The clean-up is over (finished, skipped or given up): remove its temporary index and
+		// saved position, so neither lingers or affects a later run.
+		if ( ! empty( $wpdb->get_results( "SHOW KEYS FROM `$videos_table` WHERE Key_name = 'ayg_tmp_video_id'" ) ) ) {
+			$wpdb->query( "ALTER TABLE `$videos_table` DROP INDEX ayg_tmp_video_id" );
+		}
+
+		delete_option( 'ayg_db_dedupe_cursor' );
 	}
 
 	// Fallback: add INDEX on published_at_datetime if missing (existing installs).
@@ -458,6 +577,10 @@ function ayg_db_create_custom_tables() {
 	) $charset_collate;";
 
 	dbDelta( $sql );
+
+	WP_Upgrader::release_lock( 'ayg_db_upgrade' );
+
+	return ! $dedupe_pending;
 }
 
 /**

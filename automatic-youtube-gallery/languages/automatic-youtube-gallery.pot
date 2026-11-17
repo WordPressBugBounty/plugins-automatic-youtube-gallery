@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Automatic YouTube Gallery\n"
-"POT-Creation-Date: 2026-10-16 10:14+0530\n"
-"PO-Revision-Date: 2026-10-16 10:14+0530\n"
+"POT-Creation-Date: 2026-11-17 06:48+0530\n"
+"PO-Revision-Date: 2026-11-17 06:48+0530\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en_US\n"
@@ -10,147 +10,147 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.9\n"
+"X-Generator: Poedit 3.10\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: "
 "__;_e;esc_attr__;esc_attr_e;esc_html__;esc_html_e;_n:1,2\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: admin/admin.php:163
+#: admin/admin.php:169
 msgid "Please enter your YouTube API key."
 msgstr ""
 
-#: admin/admin.php:166
+#: admin/admin.php:172
 msgid "Cleared"
 msgstr ""
 
-#: admin/admin.php:169
+#: admin/admin.php:175
 msgid "Save failed. Please try again."
 msgstr ""
 
-#: admin/admin.php:170
+#: admin/admin.php:176
 msgid "Delete failed. Please try again."
 msgstr ""
 
-#: admin/admin.php:173
+#: admin/admin.php:179
 msgid ""
 "Shortcode copied! Paste it into any post, page, or widget to display your "
 "gallery."
 msgstr ""
 
-#: admin/admin.php:176
+#: admin/admin.php:182
 msgid ""
 "Are you sure you want to delete this gallery? This action cannot be undone."
 msgstr ""
 
-#: admin/admin.php:177
+#: admin/admin.php:183
 msgid ""
 "Are you sure you want to delete the selected galleries? This action cannot "
 "be undone."
 msgstr ""
 
-#: admin/admin.php:180
+#: admin/admin.php:186
 msgid "You have unsaved changes. Are you sure you want to leave?"
 msgstr ""
 
-#: admin/admin.php:181 admin/templates/gallery-form.php:485
+#: admin/admin.php:187 admin/templates/gallery-form.php:485
 msgid "Update Gallery"
 msgstr ""
 
-#: admin/admin.php:185 admin/admin.php:189 includes/youtube-api.php:136
+#: admin/admin.php:191 admin/admin.php:195 includes/youtube-api.php:136
 #: includes/youtube-api.php:207
 msgid "A YouTube channel ID (or) a video URL from the channel is required."
 msgstr ""
 
-#: admin/admin.php:186 includes/youtube-api.php:128
+#: admin/admin.php:192 includes/youtube-api.php:128
 msgid "A YouTube playlist ID (or) URL is required."
 msgstr ""
 
-#: admin/admin.php:187 includes/youtube-api.php:169
+#: admin/admin.php:193 includes/youtube-api.php:169
 msgid "A YouTube account username is required."
 msgstr ""
 
-#: admin/admin.php:188 includes/youtube-api.php:191
+#: admin/admin.php:194 includes/youtube-api.php:191
 msgid "A search keyword is required."
 msgstr ""
 
-#: admin/admin.php:190 includes/youtube-api.php:228
+#: admin/admin.php:196 includes/youtube-api.php:228
 msgid "A YouTube video ID (or) URL is required."
 msgstr ""
 
-#: admin/admin.php:191 includes/youtube-api.php:199
+#: admin/admin.php:197 includes/youtube-api.php:199
 msgid "At least one YouTube video ID (or) URL is required."
 msgstr ""
 
-#: admin/admin.php:193 includes/youtube-api.php:142
+#: admin/admin.php:199 includes/youtube-api.php:142
 #: includes/youtube-api.php:213
 msgid ""
 "YouTube @handle URLs aren’t supported here. Please enter a channel ID, a /"
 "channel/ URL, or a video URL from the channel."
 msgstr ""
 
-#: admin/admin.php:197 admin/templates/gallery-form.php:325
+#: admin/admin.php:203 admin/templates/gallery-form.php:325
 msgid ""
 "This is a live source — you can change it anytime. Updates take effect "
 "immediately the next time the gallery is viewed."
 msgstr ""
 
-#: admin/admin.php:198 admin/templates/gallery-form.php:327
+#: admin/admin.php:204 admin/templates/gallery-form.php:327
 msgid ""
 "The video source can’t be changed once videos are imported. So please make "
 "sure you select the right source before saving."
 msgstr ""
 
-#: admin/admin.php:201
+#: admin/admin.php:207
 msgid "Processing"
 msgstr ""
 
-#: admin/admin.php:202
+#: admin/admin.php:208
 msgid ""
 "Imported: %imported%, Updated: %updated%. Please do not close this window "
 "until you see a success or error message"
 msgstr ""
 
-#: admin/admin.php:203
+#: admin/admin.php:209
 msgid ""
 "Done! Imported: %imported%, Updated: %updated%, Deleted: %deleted%. "
 "Refreshing the page"
 msgstr ""
 
-#: admin/admin.php:204
+#: admin/admin.php:210
 msgid "Import failed. Please try again."
 msgstr ""
 
-#: admin/admin.php:205
+#: admin/admin.php:211
 msgid ""
 "YouTube API quota exceeded. The import has been paused — click \"Update "
 "Gallery\" to resume after the quota resets."
 msgstr ""
 
-#: admin/admin.php:222
+#: admin/admin.php:228
 msgid "Build Gallery"
 msgstr ""
 
-#: admin/admin.php:237 admin/templates/dashboard.php:35 block/block.php:37
+#: admin/admin.php:243 admin/templates/dashboard.php:35 block/block.php:37
 #: widget/widget.php:34 widget/widget.php:119
 msgid "Automatic YouTube Gallery"
 msgstr ""
 
-#: admin/admin.php:238
+#: admin/admin.php:244
 msgid "YouTube Gallery"
 msgstr ""
 
-#: admin/admin.php:251 admin/admin.php:252
+#: admin/admin.php:257 admin/admin.php:258
 msgid "All Galleries"
 msgstr ""
 
-#: admin/admin.php:260 admin/admin.php:261 admin/templates/dashboard.php:49
+#: admin/admin.php:266 admin/admin.php:267 admin/templates/dashboard.php:49
 #: admin/templates/gallery-form.php:193 admin/templates/gallery-form.php:198
 msgid "Add New Gallery"
 msgstr ""
 
-#: admin/admin.php:365
+#: admin/admin.php:371
 #, php-format
 msgid ""
 "<strong>Automatic YouTube Gallery:</strong> You have <a "
@@ -159,23 +159,23 @@ msgid ""
 "recommend disabling this option when your site goes live."
 msgstr ""
 
-#: admin/admin.php:384 admin/admin.php:404 admin/admin.php:630
-#: admin/admin.php:659 admin/settings.php:802
+#: admin/admin.php:390 admin/admin.php:410 admin/admin.php:636
+#: admin/admin.php:665 admin/settings.php:802
 msgid "Permission denied."
 msgstr ""
 
-#: admin/admin.php:419 admin/templates/gallery-form.php:149
+#: admin/admin.php:425 admin/templates/gallery-form.php:149
 #: includes/functions.php:63 includes/import.php:46
 msgid "Gallery not found."
 msgstr ""
 
-#: admin/admin.php:567 admin/admin.php:594
+#: admin/admin.php:573 admin/admin.php:600
 #, php-format
 msgid "Gallery %d"
 msgstr ""
 
 #: admin/galleries.php:50 admin/templates/gallery-form.php:77
-#: includes/functions.php:986 widget/templates/admin.php:15
+#: includes/functions.php:1109 widget/templates/admin.php:15
 msgid "Title"
 msgstr ""
 
@@ -237,7 +237,7 @@ msgstr ""
 msgid "Player"
 msgstr ""
 
-#: admin/settings.php:101 includes/functions.php:1564
+#: admin/settings.php:101 includes/functions.php:1687
 msgid "Livestream"
 msgstr ""
 
@@ -687,7 +687,7 @@ msgstr ""
 msgid "Last Imported"
 msgstr ""
 
-#: admin/templates/gallery-form.php:283 includes/functions.php:852
+#: admin/templates/gallery-form.php:283 includes/functions.php:975
 #: public/templates/pagination.php:16
 msgid "Next"
 msgstr ""
@@ -711,7 +711,7 @@ msgid "Import History"
 msgstr ""
 
 #: admin/templates/gallery-form.php:417 admin/templates/gallery-form.php:426
-#: includes/functions.php:983
+#: includes/functions.php:1106
 msgid "Date"
 msgstr ""
 
@@ -791,414 +791,414 @@ msgstr ""
 msgid "Selected Color"
 msgstr ""
 
-#: includes/functions.php:850 public/templates/pagination.php:14
+#: includes/functions.php:973 public/templates/pagination.php:14
 msgid "Load More"
 msgstr ""
 
-#: includes/functions.php:851 public/templates/pagination.php:15
+#: includes/functions.php:974 public/templates/pagination.php:15
 msgid "Previous"
 msgstr ""
 
-#: includes/functions.php:853 includes/functions.php:1384 public/public.php:81
+#: includes/functions.php:976 includes/functions.php:1507 public/public.php:81
 msgid "Show More"
 msgstr ""
 
-#: includes/functions.php:854 public/public.php:82
+#: includes/functions.php:977 public/public.php:82
 msgid "Show Less"
 msgstr ""
 
-#: includes/functions.php:890
+#: includes/functions.php:1013
 msgid ""
 "Sorry, but the channel is not currently streaming live content. Please check "
 "back later."
 msgstr ""
 
-#: includes/functions.php:894
+#: includes/functions.php:1017
 msgid ""
 "Please accept YouTube cookies to play this video. By accepting you will be "
 "accessing content from YouTube, a service provided by an external third "
 "party."
 msgstr ""
 
-#: includes/functions.php:895
+#: includes/functions.php:1018
 msgid "Accept"
 msgstr ""
 
-#: includes/functions.php:911
+#: includes/functions.php:1034
 msgid "Source Configuration"
 msgstr ""
 
-#: includes/functions.php:915
+#: includes/functions.php:1038
 msgid "Source Type"
 msgstr ""
 
-#: includes/functions.php:924
+#: includes/functions.php:1047
 msgid "YouTube Playlist ID (or) URL"
 msgstr ""
 
-#: includes/functions.php:925 includes/functions.php:934
-#: includes/functions.php:943 includes/functions.php:952
-#: includes/functions.php:961 includes/functions.php:970
+#: includes/functions.php:1048 includes/functions.php:1057
+#: includes/functions.php:1066 includes/functions.php:1075
+#: includes/functions.php:1084 includes/functions.php:1093
 msgid "Example"
 msgstr ""
 
-#: includes/functions.php:933
+#: includes/functions.php:1056
 msgid "YouTube Channel ID (or) a Video URL from the Channel"
 msgstr ""
 
-#: includes/functions.php:942
+#: includes/functions.php:1065
 msgid "YouTube Account Username"
 msgstr ""
 
-#: includes/functions.php:951 includes/functions.php:1563
+#: includes/functions.php:1074 includes/functions.php:1686
 msgid "Search Keywords"
 msgstr ""
 
-#: includes/functions.php:960
+#: includes/functions.php:1083
 msgid "YouTube Video ID (or) URL"
 msgstr ""
 
-#: includes/functions.php:969
+#: includes/functions.php:1092
 msgid "YouTube Video IDs (or) URLs"
 msgstr ""
 
-#: includes/functions.php:973
+#: includes/functions.php:1096
 msgid "Enter one video per line"
 msgstr ""
 
-#: includes/functions.php:979
+#: includes/functions.php:1102
 msgid "Search Order"
 msgstr ""
 
-#: includes/functions.php:984
+#: includes/functions.php:1107
 msgid "Rating"
 msgstr ""
 
-#: includes/functions.php:985
+#: includes/functions.php:1108
 msgid "Relevance"
 msgstr ""
 
-#: includes/functions.php:987
+#: includes/functions.php:1110
 msgid "View Count"
 msgstr ""
 
-#: includes/functions.php:994
+#: includes/functions.php:1117
 msgid "Search Limit"
 msgstr ""
 
-#: includes/functions.php:995
+#: includes/functions.php:1118
 msgid ""
 "Enter the number of videos to display in this gallery. Set to 0 for the "
 "maximum amount (500)."
 msgstr ""
 
-#: includes/functions.php:1004
+#: includes/functions.php:1127
 msgid "Cache Duration"
 msgstr ""
 
-#: includes/functions.php:1005
+#: includes/functions.php:1128
 msgid ""
 "Specifies how frequently we should check your YouTube source for new videos/"
 "updates."
 msgstr ""
 
-#: includes/functions.php:1008
+#: includes/functions.php:1131
 msgid "No Caching"
 msgstr ""
 
-#: includes/functions.php:1009
+#: includes/functions.php:1132
 msgid "15 Minutes"
 msgstr ""
 
-#: includes/functions.php:1010
+#: includes/functions.php:1133
 msgid "30 Minutes"
 msgstr ""
 
-#: includes/functions.php:1011
+#: includes/functions.php:1134
 msgid "1 Hour"
 msgstr ""
 
-#: includes/functions.php:1012
+#: includes/functions.php:1135
 msgid "1 Day"
 msgstr ""
 
-#: includes/functions.php:1013
+#: includes/functions.php:1136
 msgid "1 Week"
 msgstr ""
 
-#: includes/functions.php:1014
+#: includes/functions.php:1137
 msgid "1 Month"
 msgstr ""
 
-#: includes/functions.php:1022
+#: includes/functions.php:1145
 msgid "Gallery Options"
 msgstr ""
 
-#: includes/functions.php:1026
+#: includes/functions.php:1149
 msgid "Player Options"
 msgstr ""
 
-#: includes/functions.php:1030 includes/functions.php:1034
+#: includes/functions.php:1153 includes/functions.php:1157
 msgid "Search Form"
 msgstr ""
 
-#: includes/functions.php:1036
+#: includes/functions.php:1159
 #, php-format
 msgid ""
 "Check this option to enable the search form. Having issues? <a href=\"%s\" "
 "target=\"_blank\" rel=\"noopener noreferrer\">Check here</a>."
 msgstr ""
 
-#: includes/functions.php:1077
+#: includes/functions.php:1200
 msgid "Select Theme (Layout)"
 msgstr ""
 
-#: includes/functions.php:1078
+#: includes/functions.php:1201
 #, php-format
 msgid ""
 "<a href=\"%s\">Upgrade Pro</a> for more themes (Popup, Inline, Slider, "
 "Playlist)."
 msgstr ""
 
-#: includes/functions.php:1081
+#: includes/functions.php:1204
 msgid "Classic"
 msgstr ""
 
-#: includes/functions.php:1088
+#: includes/functions.php:1211
 msgid "Columns"
 msgstr ""
 
-#: includes/functions.php:1089
+#: includes/functions.php:1212
 msgid ""
 "Enter the number of columns you like to have in the gallery. Maximum of 12."
 msgstr ""
 
-#: includes/functions.php:1098
+#: includes/functions.php:1221
 msgid "Videos per Page"
 msgstr ""
 
-#: includes/functions.php:1099
+#: includes/functions.php:1222
 msgid "Enter the number of videos to show per page. Maximum of 50."
 msgstr ""
 
-#: includes/functions.php:1108
+#: includes/functions.php:1231
 msgid "Image Height (Ratio)"
 msgstr ""
 
-#: includes/functions.php:1109
+#: includes/functions.php:1232
 msgid ""
 "Select the ratio value used to calculate the image height in the gallery "
 "thumbnails."
 msgstr ""
 
-#: includes/functions.php:1112 includes/functions.php:1421
+#: includes/functions.php:1235 includes/functions.php:1544
 msgid "Standard (16:9) — Default"
 msgstr ""
 
-#: includes/functions.php:1113 includes/functions.php:1422
+#: includes/functions.php:1236 includes/functions.php:1545
 msgid "Shorts / Vertical (9:16)"
 msgstr ""
 
-#: includes/functions.php:1114 includes/functions.php:1423
+#: includes/functions.php:1237 includes/functions.php:1546
 msgid "Classic (4:3)"
 msgstr ""
 
-#: includes/functions.php:1121 includes/functions.php:1430
+#: includes/functions.php:1244 includes/functions.php:1553
 msgid "Show Video Title"
 msgstr ""
 
-#: includes/functions.php:1122
+#: includes/functions.php:1245
 msgid "Check this option to show the video title in each gallery item."
 msgstr ""
 
-#: includes/functions.php:1129
+#: includes/functions.php:1252
 msgid "Video Title Length"
 msgstr ""
 
-#: includes/functions.php:1130
+#: includes/functions.php:1253
 msgid ""
 "Enter the number of characters you like to show in the title. Set 0 to show "
 "the whole title."
 msgstr ""
 
-#: includes/functions.php:1139
+#: includes/functions.php:1262
 msgid "Show Video Excerpt (Short Description)"
 msgstr ""
 
-#: includes/functions.php:1140
+#: includes/functions.php:1263
 msgid ""
 "Check this option to show the short description of a video in each gallery "
 "item."
 msgstr ""
 
-#: includes/functions.php:1147
+#: includes/functions.php:1270
 msgid "Video Excerpt Length"
 msgstr ""
 
-#: includes/functions.php:1148
+#: includes/functions.php:1271
 msgid ""
 "Enter the number of characters you like to have in the video excerpt. Set 0 "
 "to show the whole description."
 msgstr ""
 
-#: includes/functions.php:1157
+#: includes/functions.php:1280
 msgid "Pagination"
 msgstr ""
 
-#: includes/functions.php:1158
+#: includes/functions.php:1281
 msgid "Check this option to show the pagination."
 msgstr ""
 
-#: includes/functions.php:1165
+#: includes/functions.php:1288
 msgid "Pagination Type"
 msgstr ""
 
-#: includes/functions.php:1168
+#: includes/functions.php:1291
 msgid "More Button"
 msgstr ""
 
-#: includes/functions.php:1169
+#: includes/functions.php:1292
 msgid "Pager"
 msgstr ""
 
-#: includes/functions.php:1278
+#: includes/functions.php:1401
 msgid "— Pause Automatic Imports —"
 msgstr ""
 
-#: includes/functions.php:1279
+#: includes/functions.php:1402
 msgid "Only Once"
 msgstr ""
 
-#: includes/functions.php:1280
+#: includes/functions.php:1403
 msgid "Every Hour"
 msgstr ""
 
-#: includes/functions.php:1281
+#: includes/functions.php:1404
 msgid "Every Day"
 msgstr ""
 
-#: includes/functions.php:1282
+#: includes/functions.php:1405
 msgid "Every Week"
 msgstr ""
 
-#: includes/functions.php:1283
+#: includes/functions.php:1406
 msgid "Every Month"
 msgstr ""
 
-#: includes/functions.php:1307 includes/functions.php:1326
+#: includes/functions.php:1430 includes/functions.php:1449
 msgid "Completed"
 msgstr ""
 
-#: includes/functions.php:1312 includes/functions.php:1323
+#: includes/functions.php:1435 includes/functions.php:1446
 msgid "Importing"
 msgstr ""
 
-#: includes/functions.php:1317
+#: includes/functions.php:1440
 msgid "Up to Date"
 msgstr ""
 
-#: includes/functions.php:1317
+#: includes/functions.php:1440
 msgid "Pending Import"
 msgstr ""
 
-#: includes/functions.php:1322
+#: includes/functions.php:1445
 msgid "Idle"
 msgstr ""
 
-#: includes/functions.php:1324
+#: includes/functions.php:1447
 msgid "Paused"
 msgstr ""
 
-#: includes/functions.php:1325
+#: includes/functions.php:1448
 msgid "Error"
 msgstr ""
 
-#: includes/functions.php:1409
+#: includes/functions.php:1532
 msgid "Player Width"
 msgstr ""
 
-#: includes/functions.php:1410
+#: includes/functions.php:1533
 msgid ""
 "In pixels. Maximum width of the player. Leave this field empty to scale 100% "
 "of its enclosing container/html element."
 msgstr ""
 
-#: includes/functions.php:1417
+#: includes/functions.php:1540
 msgid "Player Height (Ratio)"
 msgstr ""
 
-#: includes/functions.php:1418
+#: includes/functions.php:1541
 msgid "Select the ratio value used to calculate the player height."
 msgstr ""
 
-#: includes/functions.php:1431
+#: includes/functions.php:1554
 msgid ""
 "Check this option to show the current playing video title on the bottom of "
 "the player."
 msgstr ""
 
-#: includes/functions.php:1438
+#: includes/functions.php:1561
 msgid "Show Video Description"
 msgstr ""
 
-#: includes/functions.php:1439
+#: includes/functions.php:1562
 msgid ""
 "Check this option to show the current playing video description on the "
 "bottom of the player."
 msgstr ""
 
-#: includes/functions.php:1446
+#: includes/functions.php:1569
 msgid "Autoplay"
 msgstr ""
 
-#: includes/functions.php:1447
+#: includes/functions.php:1570
 msgid ""
 "Check this option to automatically start playing the initial video when the "
 "player loads."
 msgstr ""
 
-#: includes/functions.php:1454
+#: includes/functions.php:1577
 msgid "Autoplay Next Video"
 msgstr ""
 
-#: includes/functions.php:1455
+#: includes/functions.php:1578
 msgid ""
 "Check this option to automatically play the next video in the list after the "
 "previous one ends."
 msgstr ""
 
-#: includes/functions.php:1462
+#: includes/functions.php:1585
 msgid "Loop"
 msgstr ""
 
-#: includes/functions.php:1463
+#: includes/functions.php:1586
 msgid ""
 "Check this option to loop playback. In the case of a single video player, "
 "plays the initial video again and again. In the case of a gallery, plays the "
 "entire list and then starts again at the first video."
 msgstr ""
 
-#: includes/functions.php:1470
+#: includes/functions.php:1593
 msgid "Muted"
 msgstr ""
 
-#: includes/functions.php:1471
+#: includes/functions.php:1594
 msgid "Check this option to turn OFF the audio output of the video by default."
 msgstr ""
 
-#: includes/functions.php:1478
+#: includes/functions.php:1601
 msgid "Show Player Controls"
 msgstr ""
 
-#: includes/functions.php:1479
+#: includes/functions.php:1602
 msgid "Uncheck this option to hide the video player controls."
 msgstr ""
 
-#: includes/functions.php:1486
+#: includes/functions.php:1609
 msgid "Hide YouTube Logo"
 msgstr ""
 
-#: includes/functions.php:1487
+#: includes/functions.php:1610
 msgid ""
 "Check this option to prevent the YouTube logo from displaying in the control "
 "bar. Note that a small YouTube text label will still display in the upper-"
@@ -1206,32 +1206,32 @@ msgid ""
 "player."
 msgstr ""
 
-#: includes/functions.php:1494
+#: includes/functions.php:1617
 msgid "Force Closed Captions"
 msgstr ""
 
-#: includes/functions.php:1495
+#: includes/functions.php:1618
 msgid ""
 "Check this option to show captions by default, even if the user has turned "
 "captions off. The default behavior is based on user preference."
 msgstr ""
 
-#: includes/functions.php:1502
+#: includes/functions.php:1625
 msgid "Player Language"
 msgstr ""
 
-#: includes/functions.php:1504
+#: includes/functions.php:1627
 #, php-format
 msgid ""
 "Specifies the player's interface language. Set the field's value to an <a "
 "href=\"%s\" target=\"_blank\">ISO 639-1 two-letter language code.</a>"
 msgstr ""
 
-#: includes/functions.php:1513
+#: includes/functions.php:1636
 msgid "Default Captions Language"
 msgstr ""
 
-#: includes/functions.php:1515
+#: includes/functions.php:1638
 #, php-format
 msgid ""
 "Specifies the default language that the player will use to display captions. "
@@ -1239,23 +1239,23 @@ msgid ""
 "letter language code.</a>"
 msgstr ""
 
-#: includes/functions.php:1560
+#: includes/functions.php:1683
 msgid "Channel"
 msgstr ""
 
-#: includes/functions.php:1561 premium/admin/admin.php:232
+#: includes/functions.php:1684 premium/admin/admin.php:232
 msgid "Playlist"
 msgstr ""
 
-#: includes/functions.php:1562
+#: includes/functions.php:1685
 msgid "Username"
 msgstr ""
 
-#: includes/functions.php:1565
+#: includes/functions.php:1688
 msgid "Single Video"
 msgstr ""
 
-#: includes/functions.php:1566
+#: includes/functions.php:1689
 msgid "Custom Videos List"
 msgstr ""
 
@@ -1312,12 +1312,12 @@ msgstr ""
 #: premium/admin/admin.php:159
 msgid ""
 "<strong>Note:</strong> The deeplinking feature updates your website's "
-"rewrite rules. A new rule is added for each gallery that has this option "
-"enabled. When your website has thousands of galleries, this would affect "
-"your site's performance. In such a case, we would suggest disabling this "
-"option globally on this settings page and enabling it only on the galleries "
-"selectively using the Gallery builder, Shortcode parameters, Block, or "
-"Widget settings."
+"rewrite rules. New rules are added for each page or post that displays a "
+"gallery with this option enabled. When your website has thousands of such "
+"pages, this would affect your site's performance. In such a case, we would "
+"suggest disabling this option globally on this settings page and enabling it "
+"only on the galleries selectively using the Gallery Builder, Shortcode "
+"parameters, Block, or Widget settings."
 msgstr ""
 
 #: premium/admin/admin.php:166

@@ -6,7 +6,7 @@ Tags: youtube gallery, youtube playlist, youtube channel, youtube embed, youtube
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 5.6.20
-Stable tag: 2.9.2
+Stable tag: 2.9.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -185,6 +185,11 @@ Yes, it is. However, do not "network-activate" the plugin. Activate it only on t
 10. API Key Setup — configure the free YouTube Data API key in minutes
 
 == Changelog ==
+
+= 2.9.3 =
+
+* Fix: On some sites, updating the plugin could leave the admin area unresponsive while it removed duplicate entries from its video table. The clean-up now runs in short steps without blocking the admin area, and the duplicates are removed.
+* Fix: [+] a few minor bug fixes.
 
 = 2.9.2 =
 
@@ -441,6 +446,6 @@ All of the security issues above were discovered and reported responsibly to us 
 
 == Upgrade Notice ==
 
-= 2.9.2 =
+= 2.9.3 =
 
-Livestream galleries can now show the latest recording or the next upcoming stream when nothing is live, and find long-running streams reliably. Private and deleted videos no longer appear in galleries. Your existing shortcodes, blocks and widgets keep working unchanged.
+Fixes an issue where updating could leave the admin area unresponsive on sites with many duplicate entries in the plugin's video table. Your existing shortcodes, blocks and widgets keep working unchanged.

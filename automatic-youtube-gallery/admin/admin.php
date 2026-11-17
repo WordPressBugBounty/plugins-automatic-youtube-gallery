@@ -34,8 +34,9 @@ class AYG_Admin {
 	 * Insert missing plugin options.
 	 *
 	 * @since 1.6.4
+	 * @since 2.9.3 Keeps the stored version until the database migration has finished.
 	 */
-	public function insert_missing_options() {		
+	public function insert_missing_options() {
 		if ( AYG_VERSION !== get_option( 'ayg_version' ) ) {	
 			$defaults = ayg_get_default_settings();				
 
@@ -106,8 +107,13 @@ class AYG_Admin {
 				add_option( 'ayg_privacy_settings', $defaults['ayg_privacy_settings'] );
 			}
 
-			// Create custom database tables
-			ayg_db_create_custom_tables();
+			// Create custom database tables. False means the work isn't finished yet: another request
+			// holds the lock, the duplicate clean-up stopped part-way, or it is waiting for an admin
+			// page load (it never runs from AJAX). Leave the version unchanged so a later request
+			// carries on, and clear the cache only once it's done.
+			if ( ! ayg_db_create_custom_tables() ) {
+				return;
+			}
 
 			// Delete the plugin cache
 			ayg_delete_cache();

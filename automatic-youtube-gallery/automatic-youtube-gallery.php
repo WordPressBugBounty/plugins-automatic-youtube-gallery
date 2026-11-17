@@ -11,7 +11,7 @@
  * Plugin Name:       Automatic YouTube Gallery
  * Plugin URI:        https://plugins360.com/automatic-youtube-gallery/
  * Description:       Embed YouTube videos, playlists, channels, live streams & Shorts in a responsive video gallery that stays up to date automatically.
- * Version:           2.9.2
+ * Version:           2.9.3
  * Author:            Team Plugins360
  * Author URI:        https://plugins360.com
  * License:           GPL-2.0+
@@ -30,7 +30,7 @@ if ( function_exists( 'ayg_fs' ) ) {
 }
 // Current version of the plugin
 if ( !defined( 'AYG_VERSION' ) ) {
-    define( 'AYG_VERSION', '2.9.2' );
+    define( 'AYG_VERSION', '2.9.3' );
 }
 // Unique identifier of the plugin
 if ( !defined( 'AYG_SLUG' ) ) {
@@ -162,6 +162,11 @@ if ( !function_exists( 'ayg_fs_uninstall_cleanup' ) ) {
         delete_option( 'ayg_playlist_ids' );
         delete_option( 'ayg_transient_keys' );
         delete_option( 'ayg_version' );
+        // Upgrade-routine state: normally removed when the migration finishes, but left behind if
+        // the plugin is deleted part-way through the duplicate clean-up, or after a request died
+        // while holding the lock.
+        delete_option( 'ayg_db_dedupe_cursor' );
+        delete_option( 'ayg_db_upgrade.lock' );
         // Delete our custom database tables
         $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}ayg_videos" );
         $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}ayg_galleries" );
